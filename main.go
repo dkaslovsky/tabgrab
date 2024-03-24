@@ -41,9 +41,9 @@ func main() {
 	// Script to capture URL of tab i
 	tabScript := "tell application \"" + opts.browserApp.String() + "\" to get {URL} of tab %d of window 1"
 
-	for i := 1; i < opts.maxTabs; i++ {
+	for i := 0; i < opts.maxTabs; i++ {
 
-		iTabScript := fmt.Sprintf(tabScript, i)
+		iTabScript := fmt.Sprintf(tabScript, i+1)
 
 		// There is no intention that this implementation be secure so ignore the linter warning
 		cmd := exec.Command("osascript", "-e", iTabScript) // #nosec
