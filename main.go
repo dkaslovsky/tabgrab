@@ -14,6 +14,7 @@ const (
 	// Defaults
 	defaultBrowser = browserNameBrave
 	defaultMaxTabs = 100
+	defaultPrefix  = ""
 
 	// Browser names
 	browserNameBrave  = "brave"
@@ -62,7 +63,12 @@ func main() {
 
 	}
 
-	fmt.Printf("%s", stdout.String())
+	tabs := strings.Split(stdout.String(), "\n")
+	for _, tab := range tabs {
+		if tab != "" {
+			fmt.Printf("%s%s\n", opts.prefix, tab)
+		}
+	}
 }
 
 type browserApplication struct {
@@ -76,12 +82,14 @@ func (b browserApplication) String() string {
 type options struct {
 	browserApp *browserApplication
 	maxTabs    int
+	prefix     string
 }
 
 func parseFlags(o *options) error {
 	// Flags with defaults
 	browser := flag.String("browser", defaultBrowser, "browser name")
 	maxTabs := flag.Int("max", defaultMaxTabs, "maximum number of tabs")
+	prefix := flag.String("prefix", defaultPrefix, "prefix to attach to each tab")
 	flag.Parse()
 
 	// Set browser application
@@ -101,6 +109,9 @@ func parseFlags(o *options) error {
 		return fmt.Errorf("maximum tabs must be in the range [1, %d]", defaultMaxTabs)
 	}
 	o.maxTabs = *maxTabs
+
+	// Set prefix
+	o.prefix = *prefix
 
 	return nil
 }

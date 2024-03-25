@@ -16,12 +16,14 @@ $ tabgrab -h
     	browser name (default "brave")
   -max int
     	maximum number of tabs (default 100)
+  -prefix string
+    	prefix to attach to each tab
 ```
 
 Example: extract and print all open tabs from the current Chrome window
 ```bash
-$ tabgrab -browser chrome -max 10
-https://github.com/dkaslovsky/tabgrab/tree/main
-https://www.espn.com/
-https://news.ycombinator.com/
+$ tabgrab -browser chrome -max 10 -prefix "- "
+- https://github.com/dkaslovsky/tabgrab/tree/main
+- https://www.espn.com/
+- https://news.ycombinator.com/
 ```
