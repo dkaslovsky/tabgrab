@@ -43,7 +43,6 @@ func main() {
 	tabScript := "tell application \"" + opts.browserApp.String() + "\" to get {URL} of tab %d of window 1"
 
 	for i := 0; i < opts.maxTabs; i++ {
-
 		iTabScript := fmt.Sprintf(tabScript, i+1)
 
 		// There is no intention that this implementation be secure so ignore the linter warning
@@ -60,7 +59,6 @@ func main() {
 			fmt.Printf("Error: %s\n%v\n", stderr.String(), err)
 			os.Exit(1)
 		}
-
 	}
 
 	tabs := strings.Split(stdout.String(), "\n")
@@ -87,15 +85,17 @@ type options struct {
 
 func parseFlags(o *options) error {
 	// Flags with defaults
-	browser := flag.String("browser", defaultBrowser, "browser name")
-	maxTabs := flag.Int("max", defaultMaxTabs, "maximum number of tabs")
-	prefix := flag.String("prefix", defaultPrefix, "prefix to attach to each tab")
+	var (
+		browser = flag.String("browser", defaultBrowser, "browser name")
+		maxTabs = flag.Int("max", defaultMaxTabs, "maximum number of tabs")
+		prefix  = flag.String("prefix", defaultPrefix, "optional prefix to attach to each tab's URL")
+	)
+
 	flag.Parse()
 
 	// Set browser application
-	if browserApp, ok := browserApplications[strings.ToLower(*browser)]; ok {
-		o.browserApp = browserApp
-	} else {
+	browserApp, validBrowser := browserApplications[strings.ToLower(*browser)]
+	if !validBrowser {
 		names := []string{}
 		for name := range browserApplications {
 			names = append(names, name)
@@ -103,6 +103,7 @@ func parseFlags(o *options) error {
 		sort.Strings(names)
 		return fmt.Errorf("browser must be one of %v", names)
 	}
+	o.browserApp = browserApp
 
 	// Set max tabs
 	if *maxTabs <= 0 || *maxTabs > defaultMaxTabs {
