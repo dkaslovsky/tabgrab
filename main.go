@@ -100,10 +100,7 @@ func parseFlags(o *options) error {
 	if *maxTabs <= 0 || *maxTabs > defaultMaxTabs {
 		return fmt.Errorf("maximum tabs must be in the range [1, %d]", defaultMaxTabs)
 	}
-	o.maxTabs = defaultMaxTabs
-	if *maxTabs <= o.maxTabs {
-		o.maxTabs = *maxTabs
-	}
+	o.maxTabs = *maxTabs
 
 	return nil
 }
