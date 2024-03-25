@@ -3,10 +3,11 @@ A small (and likely insecure) tool to extract the URL of every open tab in the c
 
 `tabgrab` is a macOS-specific commandline tool that prints the URL of all open tabs of the current browser window.
 
-Currently the following browsers are supported:
-* Brave (default)
-* Chrome
-* Safari
+Support status for common browsers:
+* Brave - supported (default)
+* Chrome - supported
+* Safari - supported
+* Firefox - not supported due to compatibility issues with the method used for extracting tab URLs
 
 
 ### Usage
