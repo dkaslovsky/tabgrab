@@ -9,7 +9,7 @@ Currently the following browsers are supported:
 * Safari
 
 
-Usage:
+### Usage
 ```bash
 $ tabgrab -h
   -browser string
@@ -17,13 +17,22 @@ $ tabgrab -h
   -max int
     	maximum number of tabs (default 100)
   -prefix string
-    	prefix to attach to each tab
+    	optional prefix to attach to each tab's URL
 ```
 
-Example: extract and print all open tabs from the current Chrome window
+### Examples
+
+Extract all open tabs from the browser's current window (defaults)
 ```bash
-$ tabgrab -browser chrome -max 10 -prefix "- "
+$ tabgrab
+https://github.com/dkaslovsky/tabgrab/tree/main
+https://www.espn.com/
+https://news.ycombinator.com/
+```
+
+Extract at most 2 open tabs from the current Chrome window with a prefix
+```bash
+$ tabgrab -browser chrome -max 2 -prefix "- "
 - https://github.com/dkaslovsky/tabgrab/tree/main
 - https://www.espn.com/
-- https://news.ycombinator.com/
 ```
