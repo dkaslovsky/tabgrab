@@ -148,5 +148,5 @@ func displayVersion() {
 		fmt.Printf(vStr, name, "(development)")
 		return
 	}
-	fmt.Printf(vStr, name, "v"+version)
+	fmt.Printf(vStr, name, version)
 }
