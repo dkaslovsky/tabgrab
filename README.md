@@ -39,3 +39,6 @@ $ tabgrab -browser chrome -max 2 -prefix "- "
 - https://github.com/dkaslovsky/tabgrab/tree/main
 - https://www.espn.com/
 ```
+
+### Installation
+Download the binary for your architecture from the [releases page](https://github.com/dkaslovsky/tabgrab/releases/latest) or clone this repository and build from source.
