@@ -10,6 +10,12 @@ import (
 	"strings"
 )
 
+// Application name
+const name = "tabgrab"
+
+// Version is set with ldflags
+var version string
+
 const (
 	// Defaults
 	defaultBrowser = browserNameBrave
@@ -34,6 +40,11 @@ func main() {
 	if err := parseFlags(opts); err != nil {
 		fmt.Printf("Error: %v\n", err)
 		os.Exit(1)
+	}
+
+	if opts.version {
+		displayVersion()
+		os.Exit(0)
 	}
 
 	// Buffers to capture stdout and stderr
@@ -81,6 +92,7 @@ type options struct {
 	browserApp *browserApplication
 	maxTabs    int
 	prefix     string
+	version    bool
 }
 
 func parseFlags(o *options) error {
@@ -89,9 +101,15 @@ func parseFlags(o *options) error {
 		browser = flag.String("browser", defaultBrowser, "browser name")
 		maxTabs = flag.Int("max", defaultMaxTabs, "maximum number of tabs")
 		prefix  = flag.String("prefix", defaultPrefix, "optional prefix to attach to each tab's URL")
+		version = flag.Bool("version", false, "display version")
 	)
 
 	flag.Parse()
+
+	if *version {
+		o.version = true
+		return nil
+	}
 
 	// Set browser application
 	browserApp, validBrowser := browserApplications[strings.ToLower(*browser)]
@@ -122,4 +140,13 @@ var errCodeEndOfTabs = []byte("(-1719)\n")
 
 func isErrEndOfTabs(buf *bytes.Buffer) bool {
 	return bytes.HasSuffix(buf.Bytes(), errCodeEndOfTabs)
+}
+
+func displayVersion() {
+	vStr := "%s: version %s\n"
+	if version == "" {
+		fmt.Printf(vStr, name, "(development)")
+		return
+	}
+	fmt.Printf(vStr, name, "v"+version)
 }
