@@ -5,14 +5,9 @@ builds:
       - -s -w -X main.version={{.Version}}
     goos:
       - darwin
-      - linux
-      - windows
     goarch:
       - amd64
       - arm64
-    ignore:
-      - goos: windows
-        goarch: arm64
 changelog:
     skip: true
 archives:
