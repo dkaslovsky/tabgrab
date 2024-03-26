@@ -100,7 +100,7 @@ func parseFlags(o *options) error {
 	var (
 		browser = flag.String("browser", defaultBrowser, "browser name")
 		maxTabs = flag.Int("max", defaultMaxTabs, "maximum number of tabs")
-		prefix  = flag.String("prefix", defaultPrefix, "optional prefix to attach to each tab's URL")
+		prefix  = flag.String("prefix", defaultPrefix, "optional prefix to attach to each URL")
 		version = flag.Bool("version", false, "display version")
 	)
 

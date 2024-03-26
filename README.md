@@ -18,7 +18,9 @@ $ tabgrab -h
   -max int
     	maximum number of tabs (default 100)
   -prefix string
-    	optional prefix to attach to each tab's URL
+    	optional prefix to attach to each URL
+  -version
+    	display version
 ```
 
 ### Examples
