@@ -123,10 +123,9 @@ func warnMismatchingPrefixes(prefixes prefixSet, targetPrefix string) bool {
 		fmt.Printf("Warning: all URLs contain prefix \"%s\" but prefix flag \"%s\" does not match\n", foundPrefix, targetPrefix)
 	}
 
-	fmt.Print("Continue? [Y/n]: ")
-
 	var userInput string
 	for userInput != "Y" && userInput != "n" {
+		fmt.Print("Continue? [Y/n]: ")
 		fmt.Scanln(&userInput)
 	}
 
