@@ -54,7 +54,21 @@ func main() {
 		}
 
 	case openCmd.Name():
-		fmt.Println("not implemented yet")
+		// fmt.Println("not implemented yet")
+
+		attachCommonFlags(openCmd)
+
+		opts, err := parseOpenFlags(openCmd, args)
+		if err != nil {
+			fmt.Printf("Error: %v\n", err)
+			os.Exit(1)
+		}
+
+		err = openTabs(opts)
+		if err != nil {
+			fmt.Printf("Error: %v\n", err)
+			os.Exit(1)
+		}
 
 	case versionCmd.Name():
 		displayVersion()
