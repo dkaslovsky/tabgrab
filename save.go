@@ -14,6 +14,8 @@ type saveOptions struct {
 }
 
 func parseSaveFlags(fs *flag.FlagSet, args []string) (*saveOptions, error) {
+	attachCommonFlags(fs)
+
 	err := fs.Parse(args)
 	if err != nil {
 		return nil, err
@@ -35,7 +37,7 @@ func saveTabs(opts *saveOptions) error {
 	var stdout, stderr bytes.Buffer
 
 	// Script to capture URL of tab i
-	tabScript := "tell application \"" + opts.browserApp.String() + "\" to get {URL} of tab %d of window 1"
+	tabScript := "tell application \"" + opts.browserApp.cmdName + "\" to get {URL} of tab %d of window 1"
 
 	for i := 0; i < opts.maxTabs; i++ {
 		iTabScript := fmt.Sprintf(tabScript, i+1)

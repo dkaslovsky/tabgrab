@@ -19,12 +19,20 @@ const (
 	defaultPrefix  = ""
 )
 
+// Subcommand names
+const (
+	saveCmdName    = "save"
+	restoreCmdName = "restore"
+	versionCmdName = "version"
+	helpCmdName    = "help"
+)
+
 // Subcommands
 var (
-	saveCmd    = flag.NewFlagSet("save", flag.ExitOnError)
-	restoreCmd = flag.NewFlagSet("restore", flag.ExitOnError)
-	versionCmd = flag.NewFlagSet("version", flag.ExitOnError)
-	helpCmd    = flag.NewFlagSet("help", flag.ExitOnError)
+	saveCmd    = flag.NewFlagSet(saveCmdName, flag.ExitOnError)
+	restoreCmd = flag.NewFlagSet(restoreCmdName, flag.ExitOnError)
+	versionCmd = flag.NewFlagSet(versionCmdName, flag.ExitOnError)
+	helpCmd    = flag.NewFlagSet(helpCmdName, flag.ExitOnError)
 )
 
 func main() {
@@ -39,8 +47,6 @@ func main() {
 	switch cmd {
 
 	case saveCmd.Name():
-		attachCommonFlags(saveCmd)
-
 		opts, err := parseSaveFlags(saveCmd, args)
 		if err != nil {
 			fmt.Printf("Error: %v\n", err)
@@ -54,10 +60,6 @@ func main() {
 		}
 
 	case restoreCmd.Name():
-		// fmt.Println("not implemented yet")
-
-		attachCommonFlags(restoreCmd)
-
 		opts, err := parseRestoreFlags(restoreCmd, args)
 		if err != nil {
 			fmt.Printf("Error: %v\n", err)

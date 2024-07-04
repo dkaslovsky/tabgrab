@@ -19,11 +19,29 @@ type restoreOptions struct {
 
 func parseRestoreFlags(fs *flag.FlagSet, args []string) (*restoreOptions, error) {
 	var (
-		urlList              = fs.String("urls", "", "HELP GOES HERE")
-		urlFile              = fs.String("file", "", "HELP GOES HERE")
-		browserArgs          = fs.String("browser-args", "", "HELP GOES HERE")
-		disablePrefixWarning = fs.Bool("disable-prefix-warning", false, "HELP GOES HERE")
+		urlList = fs.String(
+			"urls",
+			"",
+			fmt.Sprintf("newline-delimited list of URLs, typically the output from the '%s' command", saveCmdName),
+		)
+		urlFile = fs.String(
+			"file",
+			"",
+			"file containing newline-delimited list of URLs, ignored if --urls flag is used",
+		)
+		browserArgs = fs.String(
+			"browser-args",
+			"",
+			"optional space-delimited arguments to be passed to the browser",
+		)
+		disablePrefixWarning = fs.Bool(
+			"disable-prefix-warning",
+			false,
+			"disables warning for potentially mismatched prefix flag and URL prefixes (default false)",
+		)
 	)
+
+	attachCommonFlags(fs)
 
 	err := fs.Parse(args)
 	if err != nil {
@@ -36,7 +54,7 @@ func parseRestoreFlags(fs *flag.FlagSet, args []string) (*restoreOptions, error)
 	}
 
 	// Temporary error for unsupported browser
-	if commonOpts.browserApp.Name == browserNameSafari {
+	if commonOpts.browserApp.name == browserNameSafari {
 		return nil, fmt.Errorf("%s is not yet supported for this subcommand", browserNameSafari)
 	}
 
@@ -89,7 +107,7 @@ func restoreTabs(opts *restoreOptions) error {
 
 	newWindowArg := "--new-window" // Open the first URL in a new window
 	for _, url := range opts.urls {
-		cmd := exec.Command("open", "-na", opts.browserApp.String(), "--args", newWindowArg, opts.browserArgs, url)
+		cmd := exec.Command("open", "-na", opts.browserApp.cmdName, "--args", newWindowArg, opts.browserArgs, url)
 		cmd.Stdout = &stdout
 		cmd.Stderr = &stderr
 

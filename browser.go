@@ -10,24 +10,20 @@ const (
 // Browser applications by name
 var browserApplications = map[string]*browserApplication{
 	browserNameBrave: {
-		Name:    browserNameBrave,
-		appName: "Brave Browser",
+		name:    browserNameBrave,
+		cmdName: "Brave Browser",
 	},
 	browserNameChrome: {
-		Name:    browserNameChrome,
-		appName: "Google Chrome",
+		name:    browserNameChrome,
+		cmdName: "Google Chrome",
 	},
 	browserNameSafari: {
-		Name:    browserNameSafari,
-		appName: "Safari",
+		name:    browserNameSafari,
+		cmdName: "Safari",
 	},
 }
 
 type browserApplication struct {
-	Name    string
-	appName string
-}
-
-func (b browserApplication) String() string {
-	return b.appName
+	name    string
+	cmdName string
 }

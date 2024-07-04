@@ -21,7 +21,7 @@ func attachCommonFlags(fs *flag.FlagSet) {
 	fs.StringVar(&cFlags.browser, "browser", defaultBrowser, "browser name")
 	fs.IntVar(&cFlags.maxTabs, "max", defaultMaxTabs, "maximum number of tabs")
 	fs.StringVar(&cFlags.prefix, "prefix", defaultPrefix, "optional prefix for each URL")
-	fs.BoolVar(&cFlags.verbose, "verbose", false, "run in verbose mode")
+	fs.BoolVar(&cFlags.verbose, "verbose", false, "enable verbose output")
 }
 
 type commonOptions struct {
