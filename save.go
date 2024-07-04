@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"log"
 	"os/exec"
 	"strings"
 )
@@ -43,6 +44,10 @@ func saveTabs(opts *saveOptions) error {
 		cmd := exec.Command("osascript", "-e", iTabScript) // #nosec
 		cmd.Stdout = &stdout
 		cmd.Stderr = &stderr
+
+		if opts.verbose {
+			log.Printf("%s\n", cmd.String())
+		}
 
 		if err := cmd.Run(); err != nil {
 			// Check stderr for clean exit on end-of-tabs error

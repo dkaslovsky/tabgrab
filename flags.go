@@ -11,6 +11,7 @@ type commonFlags struct {
 	browser string
 	maxTabs int
 	prefix  string
+	verbose bool
 }
 
 // Global instance of the common flag values struct
@@ -20,12 +21,14 @@ func attachCommonFlags(fs *flag.FlagSet) {
 	fs.StringVar(&cFlags.browser, "browser", defaultBrowser, "browser name")
 	fs.IntVar(&cFlags.maxTabs, "max", defaultMaxTabs, "maximum number of tabs")
 	fs.StringVar(&cFlags.prefix, "prefix", defaultPrefix, "optional prefix for each URL")
+	fs.BoolVar(&cFlags.verbose, "verbose", false, "run in verbose mode")
 }
 
 type commonOptions struct {
 	browserApp *browserApplication
 	maxTabs    int
 	prefix     string
+	verbose    bool
 }
 
 // TODO: TESTS
@@ -52,6 +55,9 @@ func parseCommonOptions() (*commonOptions, error) {
 
 	// Set prefix
 	opts.prefix = cFlags.prefix
+
+	// Set verbose
+	opts.verbose = cFlags.verbose
 
 	return opts, nil
 }

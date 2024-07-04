@@ -5,6 +5,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"strings"
@@ -74,12 +75,17 @@ func restoreTabs(opts *restoreOptions) error {
 	newWindowArg := "--new-window" // Open the first URL in a new window
 	for _, url := range opts.urls {
 		cmd := exec.Command("open", "-na", opts.browserApp.String(), "--args", newWindowArg, opts.browserArgs, url)
-		// fmt.Println(cmd.String())
 		cmd.Stdout = &stdout
 		cmd.Stderr = &stderr
+
+		if opts.verbose {
+			log.Printf("%s\n", cmd.String())
+		}
+
 		if err := cmd.Run(); err != nil {
 			return fmt.Errorf("Error: %s\n%v\n", stderr.String(), err)
 		}
+
 		newWindowArg = "" // Open the remaining URLs as tabs within the window
 	}
 
