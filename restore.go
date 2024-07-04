@@ -17,7 +17,8 @@ type restoreOptions struct {
 	urls        []string
 }
 
-// TODO: take browser options
+// TODO: Safari
+
 func parseRestoreFlags(fs *flag.FlagSet, args []string) (*restoreOptions, error) {
 	var (
 		urlList     = fs.String("urls", "", "HELP GOES HERE")
@@ -49,10 +50,21 @@ func parseRestoreFlags(fs *flag.FlagSet, args []string) (*restoreOptions, error)
 	}
 
 	urls := []string{}
+	prefixes := newPrefixSet() // Track prefixes to detect potential mismatches
 	for _, url := range strings.Split(rawURLs, "\n") {
-		if u := strings.TrimPrefix(url, commonOpts.prefix); u != "" {
-			urls = append(urls, strings.TrimSpace(u))
+		if len(url) == 0 {
+			continue
 		}
+
+		prefixes.addFrom(url)
+
+		if u := strings.TrimSpace(strings.TrimPrefix(url, commonOpts.prefix)); u != "" {
+			urls = append(urls, u)
+		}
+	}
+
+	if warnMismatchingPrefixes(prefixes, commonOpts.prefix) {
+		return nil, errUserAbort
 	}
 
 	opts := &restoreOptions{
@@ -63,7 +75,6 @@ func parseRestoreFlags(fs *flag.FlagSet, args []string) (*restoreOptions, error)
 	return opts, nil
 }
 
-// TODO: test other browsers (SAFARI)
 func restoreTabs(opts *restoreOptions) error {
 	// Buffers to capture stdout and stderr
 	var stdout, stderr bytes.Buffer
@@ -90,4 +101,33 @@ func restoreTabs(opts *restoreOptions) error {
 	}
 
 	return nil
+}
+
+var errUserAbort = errors.New("user aborted")
+
+func warnMismatchingPrefixes(prefixes prefixSet, targetPrefix string) bool {
+	// Do not warn and prompt for abort if no mismatch exists
+	if !checkPrefixMismatch(prefixes, targetPrefix) {
+		return false
+	}
+
+	foundPrefix, ok := prefixes.pop()
+	if !ok {
+		return false
+	}
+
+	if targetPrefix == "" {
+		fmt.Printf("Warning: all URLs contain prefix \"%s\" but prefix flag not provided\n", foundPrefix)
+	} else {
+		fmt.Printf("Warning: all URLs contain prefix \"%s\" but prefix flag \"%s\" does not match\n", foundPrefix, targetPrefix)
+	}
+
+	fmt.Print("Continue? [Y/n]: ")
+
+	var userInput string
+	for userInput != "Y" && userInput != "n" {
+		fmt.Scanln(&userInput)
+	}
+
+	return userInput == "n"
 }
