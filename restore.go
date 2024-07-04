@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"errors"
 	"flag"
 	"fmt"
 	"os"
+	"os/exec"
 	"strings"
 )
 
@@ -13,6 +15,7 @@ type restoreOptions struct {
 	urls []string
 }
 
+// TODO: take browser options
 func parseRestoreFlags(fs *flag.FlagSet, args []string) (*restoreOptions, error) {
 	urlList := fs.String("urls", "", "HELP GOES HERE")
 	urlFile := fs.String("file", "", "HELP GOES HERE")
@@ -31,7 +34,7 @@ func parseRestoreFlags(fs *flag.FlagSet, args []string) (*restoreOptions, error)
 	if rawURLs == "" {
 		// Try to parse urls from file
 		if *urlFile == "" {
-			return nil, errors.New("must provide a newline-delimited list of urls as a flag argument or with a file")
+			return nil, errors.New("must provide a newline-delimited list of URLs as a flag argument or with a file")
 		}
 		raw, err := os.ReadFile(*urlFile)
 		if err != nil {
@@ -54,8 +57,25 @@ func parseRestoreFlags(fs *flag.FlagSet, args []string) (*restoreOptions, error)
 	return opts, nil
 }
 
+// TODO: test other browsers (SAFARI)
 func restoreTabs(opts *restoreOptions) error {
-	fmt.Printf("\n%+v\n", opts.commonOptions)
-	fmt.Printf("\n%+v\n", opts.urls)
+	// Buffers to capture stdout and stderr
+	var stdout, stderr bytes.Buffer
+
+	if len(opts.urls) == 0 {
+		return errors.New("no URLs provided")
+	}
+
+	windowArgs := "--new-window" // Open the first URL in a new window
+	for _, url := range opts.urls {
+		cmd := exec.Command("open", "-na", opts.browserApp.String(), "--args", windowArgs, url)
+		cmd.Stdout = &stdout
+		cmd.Stderr = &stderr
+		if err := cmd.Run(); err != nil {
+			return fmt.Errorf("Error: %s\n%v\n", stderr.String(), err)
+		}
+		windowArgs = "" // Open the remaining URLs as tabs within the window
+	}
+
 	return nil
 }
