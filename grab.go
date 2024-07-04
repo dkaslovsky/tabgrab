@@ -8,28 +8,28 @@ import (
 	"strings"
 )
 
-type grabOptions struct {
+type saveOptions struct {
 	*commonOptions
 }
 
-func parseGrabFlags(fs *flag.FlagSet, args []string) (*grabOptions, error) {
+func parseSaveFlags(fs *flag.FlagSet, args []string) (*saveOptions, error) {
 	err := fs.Parse(args)
 	if err != nil {
 		return nil, err
 	}
 
-	commonOpts, err := setCommonOptions()
+	commonOpts, err := parseCommonOptions()
 	if err != nil {
 		return nil, err
 	}
 
-	opts := &grabOptions{
+	opts := &saveOptions{
 		commonOptions: commonOpts,
 	}
 	return opts, nil
 }
 
-func grabTabs(opts *grabOptions) error {
+func saveTabs(opts *saveOptions) error {
 	// Buffers to capture stdout and stderr
 	var stdout, stderr bytes.Buffer
 

@@ -21,8 +21,8 @@ const (
 
 // Subcommands
 var (
-	grabCmd    = flag.NewFlagSet("grab", flag.ExitOnError)
-	openCmd    = flag.NewFlagSet("open", flag.ExitOnError)
+	saveCmd    = flag.NewFlagSet("save", flag.ExitOnError)
+	restoreCmd = flag.NewFlagSet("restore", flag.ExitOnError)
 	versionCmd = flag.NewFlagSet("version", flag.ExitOnError)
 	helpCmd    = flag.NewFlagSet("help", flag.ExitOnError)
 )
@@ -38,33 +38,33 @@ func main() {
 
 	switch cmd {
 
-	case grabCmd.Name():
-		attachCommonFlags(grabCmd)
+	case saveCmd.Name():
+		attachCommonFlags(saveCmd)
 
-		opts, err := parseGrabFlags(grabCmd, args)
+		opts, err := parseSaveFlags(saveCmd, args)
 		if err != nil {
 			fmt.Printf("Error: %v\n", err)
 			os.Exit(1)
 		}
 
-		err = grabTabs(opts)
+		err = saveTabs(opts)
 		if err != nil {
 			fmt.Printf("Error: %v\n", err)
 			os.Exit(1)
 		}
 
-	case openCmd.Name():
+	case restoreCmd.Name():
 		// fmt.Println("not implemented yet")
 
-		attachCommonFlags(openCmd)
+		attachCommonFlags(restoreCmd)
 
-		opts, err := parseOpenFlags(openCmd, args)
+		opts, err := parseRestoreFlags(restoreCmd, args)
 		if err != nil {
 			fmt.Printf("Error: %v\n", err)
 			os.Exit(1)
 		}
 
-		err = openTabs(opts)
+		err = restoreTabs(opts)
 		if err != nil {
 			fmt.Printf("Error: %v\n", err)
 			os.Exit(1)

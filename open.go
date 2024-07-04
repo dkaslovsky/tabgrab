@@ -6,12 +6,12 @@ import (
 	"strings"
 )
 
-type openOptions struct {
+type restoreOptions struct {
 	*commonOptions
 	urls []string
 }
 
-func parseOpenFlags(fs *flag.FlagSet, args []string) (*openOptions, error) {
+func parseRestoreFlags(fs *flag.FlagSet, args []string) (*restoreOptions, error) {
 	urls := fs.String("urls", "", "HELP GOES HERE")
 	file := fs.String("file", "", "HELP GOES HERE")
 	_ = file
@@ -21,27 +21,29 @@ func parseOpenFlags(fs *flag.FlagSet, args []string) (*openOptions, error) {
 		return nil, err
 	}
 
-	commonOpts, err := setCommonOptions()
+	commonOpts, err := parseCommonOptions()
 	if err != nil {
 		return nil, err
 	}
 
-	openURLs := []string{}
+	restoreURLs := []string{}
 	if *urls != "" {
-		for _, u := range strings.Split(*urls, "\n") {
-			openURLs = append(openURLs, strings.TrimPrefix(u, commonOpts.prefix))
+		for _, url := range strings.Split(*urls, "\n") {
+			if u := strings.TrimPrefix(url, commonOpts.prefix); u != "" {
+				restoreURLs = append(restoreURLs, u)
+			}
 		}
 	}
 
-	opts := &openOptions{
+	opts := &restoreOptions{
 		commonOptions: commonOpts,
-		urls:          openURLs,
+		urls:          restoreURLs,
 	}
 	return opts, nil
 }
 
-func openTabs(opts *openOptions) error {
-	fmt.Printf("===\n%+v\n", opts)
+func restoreTabs(opts *restoreOptions) error {
+	fmt.Printf("\n%+v\n", opts)
 
 	return nil
 }

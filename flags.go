@@ -13,12 +13,13 @@ type commonFlags struct {
 	prefix  string
 }
 
-var commonFlagValues commonFlags
+// Global instance of the common flag values struct
+var cFlags commonFlags
 
 func attachCommonFlags(fs *flag.FlagSet) {
-	fs.StringVar(&commonFlagValues.browser, "browser", defaultBrowser, "browser name")
-	fs.IntVar(&commonFlagValues.maxTabs, "max", defaultMaxTabs, "maximum number of tabs")
-	fs.StringVar(&commonFlagValues.prefix, "prefix", defaultPrefix, "optional prefix for each URL")
+	fs.StringVar(&cFlags.browser, "browser", defaultBrowser, "browser name")
+	fs.IntVar(&cFlags.maxTabs, "max", defaultMaxTabs, "maximum number of tabs")
+	fs.StringVar(&cFlags.prefix, "prefix", defaultPrefix, "optional prefix for each URL")
 }
 
 type commonOptions struct {
@@ -27,11 +28,12 @@ type commonOptions struct {
 	prefix     string
 }
 
-func setCommonOptions() (*commonOptions, error) {
+// TODO: TESTS
+func parseCommonOptions() (*commonOptions, error) {
 	opts := &commonOptions{}
 
 	// Set browser application
-	browserApp, validBrowser := browserApplications[strings.ToLower(commonFlagValues.browser)]
+	browserApp, validBrowser := browserApplications[strings.ToLower(cFlags.browser)]
 	if !validBrowser {
 		names := []string{}
 		for name := range browserApplications {
@@ -43,13 +45,13 @@ func setCommonOptions() (*commonOptions, error) {
 	opts.browserApp = browserApp
 
 	// Set max tabs
-	if commonFlagValues.maxTabs <= 0 || commonFlagValues.maxTabs > defaultMaxTabs {
+	if cFlags.maxTabs <= 0 || cFlags.maxTabs > defaultMaxTabs {
 		return nil, fmt.Errorf("maximum tabs must be in the range [1, %d]", defaultMaxTabs)
 	}
-	opts.maxTabs = commonFlagValues.maxTabs
+	opts.maxTabs = cFlags.maxTabs
 
 	// Set prefix
-	opts.prefix = commonFlagValues.prefix
+	opts.prefix = cFlags.prefix
 
 	return opts, nil
 }
