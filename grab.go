@@ -2,12 +2,34 @@ package main
 
 import (
 	"bytes"
+	"flag"
 	"fmt"
 	"os/exec"
 	"strings"
 )
 
-func grab(opts *options) error {
+type grabOptions struct {
+	*commonOptions
+}
+
+func parseGrabFlags(fs *flag.FlagSet, args []string) (*grabOptions, error) {
+	err := fs.Parse(args)
+	if err != nil {
+		return nil, err
+	}
+
+	commonOpts, err := setCommonOptions()
+	if err != nil {
+		return nil, err
+	}
+
+	opts := &grabOptions{
+		commonOptions: commonOpts,
+	}
+	return opts, nil
+}
+
+func grabTabs(opts *grabOptions) error {
 	// Buffers to capture stdout and stderr
 	var stdout, stderr bytes.Buffer
 

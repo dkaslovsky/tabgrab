@@ -40,12 +40,15 @@ func main() {
 
 	case grabCmd.Name():
 		attachCommonFlags(grabCmd)
-		opts := &options{}
-		if err := parseFlags(grabCmd, args, opts); err != nil {
+
+		opts, err := parseGrabFlags(grabCmd, args)
+		if err != nil {
 			fmt.Printf("Error: %v\n", err)
 			os.Exit(1)
 		}
-		if err := grab(opts); err != nil {
+
+		err = grabTabs(opts)
+		if err != nil {
 			fmt.Printf("Error: %v\n", err)
 			os.Exit(1)
 		}
