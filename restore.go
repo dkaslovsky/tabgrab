@@ -21,9 +21,10 @@ type restoreOptions struct {
 
 func parseRestoreFlags(fs *flag.FlagSet, args []string) (*restoreOptions, error) {
 	var (
-		urlList     = fs.String("urls", "", "HELP GOES HERE")
-		urlFile     = fs.String("file", "", "HELP GOES HERE")
-		browserArgs = fs.String("browser-args", "", "HELP GOES HERE")
+		urlList              = fs.String("urls", "", "HELP GOES HERE")
+		urlFile              = fs.String("file", "", "HELP GOES HERE")
+		browserArgs          = fs.String("browser-args", "", "HELP GOES HERE")
+		disablePrefixWarning = fs.Bool("disable-prefix-warning", false, "HELP GOES HERE")
 	)
 
 	err := fs.Parse(args)
@@ -63,7 +64,7 @@ func parseRestoreFlags(fs *flag.FlagSet, args []string) (*restoreOptions, error)
 		}
 	}
 
-	if warnMismatchingPrefixes(prefixes, commonOpts.prefix) {
+	if !(*disablePrefixWarning) && warnMismatchingPrefixes(prefixes, commonOpts.prefix) {
 		return nil, errUserAbort
 	}
 
