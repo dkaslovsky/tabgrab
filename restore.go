@@ -12,13 +12,17 @@ import (
 
 type restoreOptions struct {
 	*commonOptions
-	urls []string
+	browserArgs string
+	urls        []string
 }
 
 // TODO: take browser options
 func parseRestoreFlags(fs *flag.FlagSet, args []string) (*restoreOptions, error) {
-	urlList := fs.String("urls", "", "HELP GOES HERE")
-	urlFile := fs.String("file", "", "HELP GOES HERE")
+	var (
+		urlList     = fs.String("urls", "", "HELP GOES HERE")
+		urlFile     = fs.String("file", "", "HELP GOES HERE")
+		browserArgs = fs.String("browser-args", "", "HELP GOES HERE")
+	)
 
 	err := fs.Parse(args)
 	if err != nil {
@@ -53,6 +57,7 @@ func parseRestoreFlags(fs *flag.FlagSet, args []string) (*restoreOptions, error)
 	opts := &restoreOptions{
 		commonOptions: commonOpts,
 		urls:          urls,
+		browserArgs:   *browserArgs,
 	}
 	return opts, nil
 }
@@ -66,15 +71,16 @@ func restoreTabs(opts *restoreOptions) error {
 		return errors.New("no URLs provided")
 	}
 
-	windowArgs := "--new-window" // Open the first URL in a new window
+	newWindowArg := "--new-window" // Open the first URL in a new window
 	for _, url := range opts.urls {
-		cmd := exec.Command("open", "-na", opts.browserApp.String(), "--args", windowArgs, url)
+		cmd := exec.Command("open", "-na", opts.browserApp.String(), "--args", newWindowArg, opts.browserArgs, url)
+		// fmt.Println(cmd.String())
 		cmd.Stdout = &stdout
 		cmd.Stderr = &stderr
 		if err := cmd.Run(); err != nil {
 			return fmt.Errorf("Error: %s\n%v\n", stderr.String(), err)
 		}
-		windowArgs = "" // Open the remaining URLs as tabs within the window
+		newWindowArg = "" // Open the remaining URLs as tabs within the window
 	}
 
 	return nil
