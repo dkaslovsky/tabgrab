@@ -46,12 +46,15 @@ func saveTabs(opts *saveOptions) error {
 		cmd.Stderr = &stderr
 
 		if opts.verbose {
-			log.Printf("%s\n", cmd.String())
+			log.Printf("executing: %s\n", cmd.String())
 		}
 
 		if err := cmd.Run(); err != nil {
 			// Check stderr for clean exit on end-of-tabs error
 			if stderr.Len() == 0 || isErrEndOfTabs(&stderr) {
+				if opts.verbose {
+					log.Printf("tab %d of window 1 not found, end of tabs", i+1)
+				}
 				break
 			}
 			// Return error if not end-of-tabs

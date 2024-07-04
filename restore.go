@@ -79,7 +79,7 @@ func restoreTabs(opts *restoreOptions) error {
 		cmd.Stderr = &stderr
 
 		if opts.verbose {
-			log.Printf("%s\n", cmd.String())
+			log.Printf("executing: %s\n", cmd.String())
 		}
 
 		if err := cmd.Run(); err != nil {
