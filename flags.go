@@ -31,7 +31,6 @@ type commonOptions struct {
 	verbose    bool
 }
 
-// TODO: TESTS
 func parseCommonOptions() (*commonOptions, error) {
 	opts := &commonOptions{}
 

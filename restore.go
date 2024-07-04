@@ -17,8 +17,6 @@ type restoreOptions struct {
 	urls        []string
 }
 
-// TODO: Safari
-
 func parseRestoreFlags(fs *flag.FlagSet, args []string) (*restoreOptions, error) {
 	var (
 		urlList              = fs.String("urls", "", "HELP GOES HERE")
@@ -35,6 +33,11 @@ func parseRestoreFlags(fs *flag.FlagSet, args []string) (*restoreOptions, error)
 	commonOpts, err := parseCommonOptions()
 	if err != nil {
 		return nil, err
+	}
+
+	// Temporary error for unsupported browser
+	if commonOpts.browserApp.Name == browserNameSafari {
+		return nil, fmt.Errorf("%s is not yet supported for this subcommand", browserNameSafari)
 	}
 
 	rawURLs := *urlList
@@ -114,7 +117,7 @@ func warnMismatchingPrefixes(prefixes prefixSet, targetPrefix string) bool {
 
 	foundPrefix, ok := prefixes.pop()
 	if !ok {
-		return false
+		return false // Do not abort if a prefix cannot be popped from the set
 	}
 
 	if targetPrefix == "" {
