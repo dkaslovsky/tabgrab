@@ -45,7 +45,7 @@ func parseRestoreFlags(fs *flag.FlagSet, args []string) (*restoreOptions, error)
 
 	defaultUsage := fs.Usage
 	fs.Usage = func() {
-		fmt.Fprintf(os.Stderr, "`%s` opens the provided URLs as tabs in a new browser window\n\n", restoreCmdName)
+		fmt.Fprintf(os.Stderr, "`%s` opens the provided URLs as tabs in a new browser window\n\n", tabCmdName)
 		defaultUsage()
 	}
 
