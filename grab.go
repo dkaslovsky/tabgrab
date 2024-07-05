@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -81,15 +83,29 @@ func grabTabs(opts *grabOptions) error {
 				break
 			}
 			// Return error if not end-of-tabs
-			return fmt.Errorf("Error: %s\n%v\n", stderr.String(), err)
+			return fmt.Errorf("%s\n%v\n", stderr.String(), err)
 		}
 	}
+
+	// Setup output writer
+	var out io.Writer = os.Stdout
+	if opts.clipboard {
+		out = &clipboard{}
+	}
+	writer := bufio.NewWriter(out)
 
 	tabs := strings.Split(stdout.String(), "\n")
 	for _, tab := range tabs {
 		if tab != "" {
-			fmt.Printf("%s%s\n", opts.prefix, tab)
+			_, err := writer.WriteString(fmt.Sprintf("%s%s\n", opts.prefix, tab))
+			if err != nil {
+				return fmt.Errorf("failed to write output to buffer: %w", err)
+			}
 		}
+	}
+	err := writer.Flush()
+	if err != nil {
+		return fmt.Errorf("failed to flush buffer: %w", err)
 	}
 
 	return nil

@@ -15,10 +15,11 @@ const (
 )
 
 type commonFlags struct {
-	browser string
-	maxTabs int
-	prefix  string
-	verbose bool
+	browser   string
+	maxTabs   int
+	prefix    string
+	clipboard bool
+	verbose   bool
 }
 
 // Global instance of the common flag values struct
@@ -28,6 +29,7 @@ func attachCommonFlags(fs *flag.FlagSet) {
 	fs.StringVar(&cFlags.browser, "browser", defaultBrowser, "browser name")
 	fs.IntVar(&cFlags.maxTabs, "max", defaultMaxTabs, "maximum number of tabs")
 	fs.StringVar(&cFlags.prefix, "prefix", defaultPrefix, "optional prefix for each URL")
+	fs.BoolVar(&cFlags.clipboard, "clipboard", false, "use clipboard for input/output")
 	fs.BoolVar(&cFlags.verbose, "verbose", false, "enable verbose output")
 }
 
@@ -35,6 +37,7 @@ type commonOptions struct {
 	browserApp *browserApplication
 	maxTabs    int
 	prefix     string
+	clipboard  bool
 	verbose    bool
 }
 
@@ -59,10 +62,8 @@ func parseCommonOptions() (*commonOptions, error) {
 	}
 	opts.maxTabs = cFlags.maxTabs
 
-	// Set prefix
 	opts.prefix = cFlags.prefix
-
-	// Set verbose
+	opts.clipboard = cFlags.clipboard
 	opts.verbose = cFlags.verbose
 
 	return opts, nil
