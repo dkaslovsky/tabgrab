@@ -41,7 +41,7 @@ func parseTabFlags(fs *flag.FlagSet, args []string) (*tabOptions, error) {
 		urlFile = fs.String(
 			"file",
 			"",
-			"file containing newline-delimited list of URLs, ignored if --urls flag is used",
+			"file containing newline-delimited list of URLs, ignored if --urls or --clipboard flag is used",
 		)
 		browserArgs = fs.String(
 			"browser-args",
@@ -78,17 +78,27 @@ func parseTabFlags(fs *flag.FlagSet, args []string) (*tabOptions, error) {
 		return nil, fmt.Errorf("%s is not yet supported for this subcommand", browserNameSafari)
 	}
 
-	rawURLs := *urlList
-	if rawURLs == "" {
-		// Try to parse urls from file
-		if *urlFile == "" {
-			return nil, errors.New("must provide a newline-delimited list of URLs as a flag argument or with a file")
+	var rawURLs string
+	switch {
+	case *urlList != "":
+		rawURLs = *urlList
+	case commonOpts.clipboard:
+		reader := &clipboard{}
+		raw := make([]byte, 1024*1024)
+		_, err := reader.Read(raw)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read from clipboard: %w", err)
 		}
+		rawURLs = string(raw[:])
+		fmt.Println(rawURLs)
+	case *urlFile != "":
 		raw, err := os.ReadFile(*urlFile)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read from file: %w", err)
 		}
 		rawURLs = string(raw[:])
+	default:
+		return nil, errors.New("newline-delimited list of URLs required as a flag argument, from the clipboard, or from a file")
 	}
 
 	urls := []string{}
@@ -100,7 +110,7 @@ func parseTabFlags(fs *flag.FlagSet, args []string) (*tabOptions, error) {
 
 		prefixes.addFrom(url)
 
-		if u := strings.TrimSpace(strings.TrimPrefix(url, commonOpts.prefix)); u != "" {
+		if u := cleanURL(url, commonOpts.prefix); u != "" {
 			urls = append(urls, u)
 		}
 	}
@@ -136,13 +146,17 @@ func openTabs(opts *tabOptions) error {
 		}
 
 		if err := cmd.Run(); err != nil {
-			return fmt.Errorf("Error: %s\n%v\n", stderr.String(), err)
+			return fmt.Errorf("%s\n%v\n", stderr.String(), err)
 		}
 
 		newWindowArg = "" // Open the remaining URLs as tabs within the window
 	}
 
 	return nil
+}
+
+func cleanURL(url string, prefix string) string {
+	return strings.Trim(strings.TrimSpace(strings.TrimPrefix(url, prefix)), "\x00")
 }
 
 var errUserAbort = errors.New("user aborted")
