@@ -9,7 +9,7 @@ import (
 
 // Defaults
 const (
-	defaultBrowser = browserNameBrave
+	defaultBrowser = browserNameChrome
 	defaultMaxTabs = 100
 	defaultPrefix  = ""
 )
