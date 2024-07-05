@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 )
 
 func runTabCmd(cmd *flag.FlagSet, args []string) error {
@@ -169,9 +170,12 @@ func openTabsSafari(opts *tabOptions, urls []string) error {
 		return fmt.Errorf("%s\n%v\n", stderr.String(), err)
 	}
 
-	script := "tell application \"" + opts.browserApp.cmdName + "\" to tell window 1 to set URL of tab 1 to "
+	time.Sleep(1 * time.Second)
+
+	scriptLayout := "tell application \"" + opts.browserApp.cmdName + "\" to tell window 1 to set URL of %s to \"%s\""
+	tabIdx := "tab 1"
 	for _, url := range urls {
-		cmd := exec.Command("osascript", "-e", script+"\""+url+"\"")
+		cmd := exec.Command("osascript", "-e", fmt.Sprintf(scriptLayout, tabIdx, url))
 		cmd.Stdout = &stdout
 		cmd.Stderr = &stderr
 		if opts.verbose {
@@ -180,7 +184,7 @@ func openTabsSafari(opts *tabOptions, urls []string) error {
 		if err := cmd.Run(); err != nil {
 			return fmt.Errorf("%s\n%v\n", stderr.String(), err)
 		}
-		script = "tell application \"" + opts.browserApp.cmdName + "\" to tell window 1 to set URL of (make new tab) to "
+		tabIdx = "(make new tab)"
 	}
 
 	// Set last tab as active tab
