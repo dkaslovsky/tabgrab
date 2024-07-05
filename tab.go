@@ -170,7 +170,8 @@ func openTabsSafari(opts *tabOptions, urls []string) error {
 		return fmt.Errorf("%s\n%v\n", stderr.String(), err)
 	}
 
-	time.Sleep(1 * time.Second)
+	// Give Safari a chance to get the new window 1
+	time.Sleep(500 * time.Millisecond)
 
 	scriptLayout := "tell application \"" + opts.browserApp.cmdName + "\" to tell window 1 to set URL of %s to \"%s\""
 	tabIdx := "tab 1"
