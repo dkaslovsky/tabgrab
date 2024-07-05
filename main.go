@@ -12,81 +12,38 @@ const appName = "tabgrab"
 // Version is set with ldflags
 var version string
 
-// Defaults
-const (
-	defaultBrowser = browserNameBrave
-	defaultMaxTabs = 100
-	defaultPrefix  = ""
-)
-
-// Subcommand names
-const (
-	grabCmdName    = "grab"
-	tabCmdName     = "tab"
-	versionCmdName = "version"
-	helpCmdName    = "help"
-)
-
-// Subcommands
-var (
-	saveCmd    = flag.NewFlagSet(grabCmdName, flag.ExitOnError)
-	restoreCmd = flag.NewFlagSet(tabCmdName, flag.ExitOnError)
-	versionCmd = flag.NewFlagSet(versionCmdName, flag.ExitOnError)
-	helpCmd    = flag.NewFlagSet(helpCmdName, flag.ExitOnError)
-)
-
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Println("PLACEHOLDER ERROR MESSAGE FOR MISSING SUBCMD")
-		displayHelp()
+		usage()
 		os.Exit(1)
 	}
 
-	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Usage of %s:\n", appName)
-		fmt.Fprintf(os.Stderr, "PLACEHOLDER FOR COMMANDS: %v", []string{grabCmdName, tabCmdName, versionCmdName, helpCmdName})
-	}
+	flag.Usage = func() { usage() }
 	flag.Parse()
 
-	cmd, args := os.Args[1], os.Args[2:]
+	subCmd, args := os.Args[1], os.Args[2:]
 
-	switch cmd {
+	switch subCmd {
 
-	case saveCmd.Name():
-		opts, err := parseSaveFlags(saveCmd, args)
-		if err != nil {
+	case grabCmd.Name():
+		if err := runGrabCmd(grabCmd, args); err != nil {
 			fmt.Printf("Error: %v\n", err)
 			os.Exit(1)
 		}
 
-		err = saveTabs(opts)
-		if err != nil {
-			fmt.Printf("Error: %v\n", err)
-			os.Exit(1)
-		}
-
-	case restoreCmd.Name():
-		opts, err := parseRestoreFlags(restoreCmd, args)
-		if err != nil {
-			fmt.Printf("Error: %v\n", err)
-			os.Exit(1)
-		}
-
-		err = restoreTabs(opts)
-		if err != nil {
+	case tabCmd.Name():
+		if err := runTabCmd(tabCmd, args); err != nil {
 			fmt.Printf("Error: %v\n", err)
 			os.Exit(1)
 		}
 
 	case versionCmd.Name():
 		displayVersion()
-
-	case helpCmd.Name():
-		displayHelp()
+		os.Exit(0)
 
 	default:
-		fmt.Println("PLACEHOLDER ERROR MESSAGE FOR UNKNOWN SUBCMD")
-		displayHelp()
+		fmt.Printf("Error: unrecognized subcommand %s\n", subCmd)
+		usage()
 		os.Exit(1)
 
 	}
@@ -101,6 +58,11 @@ func displayVersion() {
 	fmt.Printf(vStr, appName, version)
 }
 
-func displayHelp() {
-	fmt.Println("PLACEHOLDER FOR HELP")
+func usage() {
+	fmt.Fprintf(os.Stderr, "%s: extract and restore URL tabs to and from the active browser window\n\n", appName)
+	fmt.Fprint(os.Stderr, "Usage:\n")
+	fmt.Fprintf(os.Stderr, "  %s:\t\t%s\n", grabCmdName, grabCmdDescription)
+	fmt.Fprintf(os.Stderr, "  %s:\t\t%s\n", tabCmdName, tabCmdDescription)
+	fmt.Fprintf(os.Stderr, "  %s:\t%s\n", versionCmdName, versionCmdDescription)
+	fmt.Fprintf(os.Stderr, "\nRun `%s <subcommand> -help` for specific usage and flags", appName)
 }

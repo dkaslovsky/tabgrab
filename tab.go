@@ -11,13 +11,27 @@ import (
 	"strings"
 )
 
-type restoreOptions struct {
+func runTabCmd(cmd *flag.FlagSet, args []string) error {
+	opts, err := parseTabFlags(cmd, args)
+	if err != nil {
+		return err
+	}
+
+	err = openTabs(opts)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+type tabOptions struct {
 	*commonOptions
 	browserArgs string
 	urls        []string
 }
 
-func parseRestoreFlags(fs *flag.FlagSet, args []string) (*restoreOptions, error) {
+func parseTabFlags(fs *flag.FlagSet, args []string) (*tabOptions, error) {
 	var (
 		urlList = fs.String(
 			"urls",
@@ -45,7 +59,7 @@ func parseRestoreFlags(fs *flag.FlagSet, args []string) (*restoreOptions, error)
 
 	defaultUsage := fs.Usage
 	fs.Usage = func() {
-		fmt.Fprintf(os.Stderr, "`%s` opens the provided URLs as tabs in a new browser window\n\n", tabCmdName)
+		fmt.Fprintf(os.Stderr, "`%s` %s\n\n", tabCmdName, tabCmdDescription)
 		defaultUsage()
 	}
 
@@ -95,7 +109,7 @@ func parseRestoreFlags(fs *flag.FlagSet, args []string) (*restoreOptions, error)
 		return nil, errUserAbort
 	}
 
-	opts := &restoreOptions{
+	opts := &tabOptions{
 		commonOptions: commonOpts,
 		urls:          urls,
 		browserArgs:   *browserArgs,
@@ -103,7 +117,7 @@ func parseRestoreFlags(fs *flag.FlagSet, args []string) (*restoreOptions, error)
 	return opts, nil
 }
 
-func restoreTabs(opts *restoreOptions) error {
+func openTabs(opts *tabOptions) error {
 	// Buffers to capture stdout and stderr
 	var stdout, stderr bytes.Buffer
 

@@ -10,16 +10,30 @@ import (
 	"strings"
 )
 
-type saveOptions struct {
+func runGrabCmd(cmd *flag.FlagSet, args []string) error {
+	opts, err := parseGrabFlags(cmd, args)
+	if err != nil {
+		return err
+	}
+
+	err = grabTabs(opts)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+type grabOptions struct {
 	*commonOptions
 }
 
-func parseSaveFlags(fs *flag.FlagSet, args []string) (*saveOptions, error) {
+func parseGrabFlags(fs *flag.FlagSet, args []string) (*grabOptions, error) {
 	attachCommonFlags(fs)
 
 	defaultUsage := fs.Usage
 	fs.Usage = func() {
-		fmt.Fprintf(os.Stderr, "`%s` outputs the URL from each tab of the active browser window\n\n", grabCmdName)
+		fmt.Fprintf(os.Stderr, "`%s` %s\n\n", grabCmdName, grabCmdDescription)
 		defaultUsage()
 	}
 
@@ -33,13 +47,13 @@ func parseSaveFlags(fs *flag.FlagSet, args []string) (*saveOptions, error) {
 		return nil, err
 	}
 
-	opts := &saveOptions{
+	opts := &grabOptions{
 		commonOptions: commonOpts,
 	}
 	return opts, nil
 }
 
-func saveTabs(opts *saveOptions) error {
+func grabTabs(opts *grabOptions) error {
 	// Buffers to capture stdout and stderr
 	var stdout, stderr bytes.Buffer
 

@@ -7,6 +7,13 @@ import (
 	"strings"
 )
 
+// Defaults
+const (
+	defaultBrowser = browserNameBrave
+	defaultMaxTabs = 100
+	defaultPrefix  = ""
+)
+
 type commonFlags struct {
 	browser string
 	maxTabs int
