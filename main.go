@@ -21,7 +21,7 @@ const (
 
 // Subcommand names
 const (
-	saveCmdName    = "save"
+	grabCmdName    = "grab"
 	restoreCmdName = "restore"
 	versionCmdName = "version"
 	helpCmdName    = "help"
@@ -29,7 +29,7 @@ const (
 
 // Subcommands
 var (
-	saveCmd    = flag.NewFlagSet(saveCmdName, flag.ExitOnError)
+	saveCmd    = flag.NewFlagSet(grabCmdName, flag.ExitOnError)
 	restoreCmd = flag.NewFlagSet(restoreCmdName, flag.ExitOnError)
 	versionCmd = flag.NewFlagSet(versionCmdName, flag.ExitOnError)
 	helpCmd    = flag.NewFlagSet(helpCmdName, flag.ExitOnError)
@@ -44,7 +44,7 @@ func main() {
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage of %s:\n", appName)
-		fmt.Fprintf(os.Stderr, "PLACEHOLDER FOR COMMANDS: %v", []string{saveCmdName, restoreCmdName, versionCmdName, helpCmdName})
+		fmt.Fprintf(os.Stderr, "PLACEHOLDER FOR COMMANDS: %v", []string{grabCmdName, restoreCmdName, versionCmdName, helpCmdName})
 	}
 	flag.Parse()
 

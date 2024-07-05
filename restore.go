@@ -22,7 +22,7 @@ func parseRestoreFlags(fs *flag.FlagSet, args []string) (*restoreOptions, error)
 		urlList = fs.String(
 			"urls",
 			"",
-			fmt.Sprintf("newline-delimited list of URLs, typically the output from the `%s` command", saveCmdName),
+			fmt.Sprintf("newline-delimited list of URLs, typically the output from the `%s` command", grabCmdName),
 		)
 		urlFile = fs.String(
 			"file",
