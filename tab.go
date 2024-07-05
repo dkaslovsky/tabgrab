@@ -76,11 +76,6 @@ func parseTabFlags(fs *flag.FlagSet, args []string) (*tabOptions, error) {
 		return nil, err
 	}
 
-	// Temporary error for unsupported browser
-	if commonOpts.browserApp.name == browserNameSafari {
-		return nil, fmt.Errorf("%s is not yet supported for this subcommand", browserNameSafari)
-	}
-
 	var urlReader io.Reader
 	switch {
 	case commonOpts.clipboard:
@@ -118,28 +113,86 @@ func openTabs(opts *tabOptions) error {
 		return errUserAbort
 	}
 
-	// Buffers to capture stdout and stderr
-	var stdout, stderr bytes.Buffer
-
 	if len(urls) == 0 {
 		return errors.New("no URLs provided")
 	}
+
+	switch opts.browserApp.name {
+	case browserNameChrome, browserNameBrave:
+		err := openTabsChromium(opts, urls)
+		if err != nil {
+			return err
+		}
+	case browserNameSafari:
+		err := openTabsSafari(opts, urls)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func openTabsChromium(opts *tabOptions, urls []string) error {
+	// Buffers to capture stdout and stderr
+	var stdout, stderr bytes.Buffer
 
 	newWindowArg := "--new-window" // Open the first URL in a new window
 	for _, url := range urls {
 		cmd := exec.Command("open", "-na", opts.browserApp.cmdName, "--args", newWindowArg, opts.browserArgs, url)
 		cmd.Stdout = &stdout
 		cmd.Stderr = &stderr
-
 		if opts.verbose {
 			log.Printf("executing: %s\n", cmd.String())
 		}
-
 		if err := cmd.Run(); err != nil {
 			return fmt.Errorf("%s\n%v\n", stderr.String(), err)
 		}
-
 		newWindowArg = "" // Open the remaining URLs as tabs within the window
+	}
+
+	return nil
+}
+
+func openTabsSafari(opts *tabOptions, urls []string) error {
+	// Buffers to capture stdout and stderr
+	var stdout, stderr bytes.Buffer
+
+	// Open a new window
+	cmd := exec.Command("open", "-na", opts.browserApp.cmdName, "--args", "--new-window", opts.browserArgs)
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	if opts.verbose {
+		log.Printf("executing: %s\n", cmd.String())
+	}
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("%s\n%v\n", stderr.String(), err)
+	}
+
+	script := "tell application \"" + opts.browserApp.cmdName + "\" to tell window 1 to set URL of tab 1 to "
+	for _, url := range urls {
+		cmd := exec.Command("osascript", "-e", script+"\""+url+"\"")
+		cmd.Stdout = &stdout
+		cmd.Stderr = &stderr
+		if opts.verbose {
+			log.Printf("executing: %s\n", cmd.String())
+		}
+		if err := cmd.Run(); err != nil {
+			return fmt.Errorf("%s\n%v\n", stderr.String(), err)
+		}
+		script = "tell application \"" + opts.browserApp.cmdName + "\" to tell window 1 to set URL of (make new tab) to "
+	}
+
+	// Set last tab as active tab
+	lastTabScript := "tell application \"" + opts.browserApp.cmdName + "\" to tell window 1 to set current tab to last tab"
+	cmd = exec.Command("osascript", "-e", lastTabScript)
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	if opts.verbose {
+		log.Printf("executing: %s\n", cmd.String())
+	}
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("%s\n%v\n", stderr.String(), err)
 	}
 
 	return nil
