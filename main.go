@@ -42,6 +42,12 @@ func main() {
 		os.Exit(1)
 	}
 
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "Usage of %s:\n", appName)
+		fmt.Fprintf(os.Stderr, "PLACEHOLDER FOR COMMANDS: %v", []string{saveCmdName, restoreCmdName, versionCmdName, helpCmdName})
+	}
+	flag.Parse()
+
 	cmd, args := os.Args[1], os.Args[2:]
 
 	switch cmd {

@@ -22,7 +22,7 @@ func parseRestoreFlags(fs *flag.FlagSet, args []string) (*restoreOptions, error)
 		urlList = fs.String(
 			"urls",
 			"",
-			fmt.Sprintf("newline-delimited list of URLs, typically the output from the '%s' command", saveCmdName),
+			fmt.Sprintf("newline-delimited list of URLs, typically the output from the `%s` command", saveCmdName),
 		)
 		urlFile = fs.String(
 			"file",
@@ -42,6 +42,12 @@ func parseRestoreFlags(fs *flag.FlagSet, args []string) (*restoreOptions, error)
 	)
 
 	attachCommonFlags(fs)
+
+	defaultUsage := fs.Usage
+	fs.Usage = func() {
+		fmt.Fprintf(os.Stderr, "`%s` opens the provided URLs as tabs in a new browser window\n\n", restoreCmdName)
+		defaultUsage()
+	}
 
 	err := fs.Parse(args)
 	if err != nil {

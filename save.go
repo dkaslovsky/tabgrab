@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
 	"os/exec"
 	"strings"
 )
@@ -15,6 +16,12 @@ type saveOptions struct {
 
 func parseSaveFlags(fs *flag.FlagSet, args []string) (*saveOptions, error) {
 	attachCommonFlags(fs)
+
+	defaultUsage := fs.Usage
+	fs.Usage = func() {
+		fmt.Fprintf(os.Stderr, "`%s` outputs the URL from each tab of the active browser window\n\n", saveCmdName)
+		defaultUsage()
+	}
 
 	err := fs.Parse(args)
 	if err != nil {
