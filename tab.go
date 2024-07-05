@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -27,8 +29,9 @@ func runTabCmd(cmd *flag.FlagSet, args []string) error {
 
 type tabOptions struct {
 	*commonOptions
-	browserArgs string
-	urls        []string
+	urlReader            io.Reader
+	browserArgs          string
+	disablePrefixWarning bool
 }
 
 func parseTabFlags(fs *flag.FlagSet, args []string) (*tabOptions, error) {
@@ -36,12 +39,12 @@ func parseTabFlags(fs *flag.FlagSet, args []string) (*tabOptions, error) {
 		urlList = fs.String(
 			"urls",
 			"",
-			fmt.Sprintf("newline-delimited list of URLs, typically the output from the `%s` command", grabCmdName),
+			fmt.Sprintf("newline-delimited list of URLs, typically the output from the `%s` command, ignored if -clipboard flag is used", grabCmdName),
 		)
 		urlFile = fs.String(
 			"file",
 			"",
-			"file containing newline-delimited list of URLs, ignored if --urls or --clipboard flag is used",
+			"file containing newline-delimited list of URLs, ignored if -urls or -clipboard flag is used",
 		)
 		browserArgs = fs.String(
 			"browser-args",
@@ -78,65 +81,52 @@ func parseTabFlags(fs *flag.FlagSet, args []string) (*tabOptions, error) {
 		return nil, fmt.Errorf("%s is not yet supported for this subcommand", browserNameSafari)
 	}
 
-	var rawURLs string
+	var urlReader io.Reader
 	switch {
-	case *urlList != "":
-		rawURLs = *urlList
 	case commonOpts.clipboard:
-		reader := &clipboard{}
-		raw := make([]byte, 1024*1024)
-		_, err := reader.Read(raw)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read from clipboard: %w", err)
-		}
-		rawURLs = string(raw[:])
-		fmt.Println(rawURLs)
+		urlReader = &clipboard{}
+	case *urlList != "":
+		urlReader = bufio.NewReader(strings.NewReader(*urlList))
 	case *urlFile != "":
-		raw, err := os.ReadFile(*urlFile)
+		f, err := os.Open(*urlFile)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read from file: %w", err)
 		}
-		rawURLs = string(raw[:])
+		urlReader = bufio.NewReader(f)
 	default:
 		return nil, errors.New("newline-delimited list of URLs required as a flag argument, from the clipboard, or from a file")
 	}
 
-	urls := []string{}
-	prefixes := newPrefixSet() // Track prefixes to detect potential mismatches
-	for _, url := range strings.Split(rawURLs, "\n") {
-		if len(url) == 0 {
-			continue
-		}
-
-		prefixes.addFrom(url)
-
-		if u := cleanURL(url, commonOpts.prefix); u != "" {
-			urls = append(urls, u)
-		}
-	}
-
-	if !(*disablePrefixWarning) && warnMismatchingPrefixes(prefixes, commonOpts.prefix) {
-		return nil, errUserAbort
-	}
-
 	opts := &tabOptions{
-		commonOptions: commonOpts,
-		urls:          urls,
-		browserArgs:   *browserArgs,
+		commonOptions:        commonOpts,
+		urlReader:            urlReader,
+		browserArgs:          *browserArgs,
+		disablePrefixWarning: *disablePrefixWarning,
 	}
 	return opts, nil
 }
 
 func openTabs(opts *tabOptions) error {
+	urls, prefixes, err := readURLs(opts.urlReader, func(url string) string {
+		return cleanURL(url, opts.prefix)
+	})
+	if err != nil {
+		return fmt.Errorf("failed to read URLs: %w", err)
+	}
+
+	if !opts.disablePrefixWarning && warnMismatchingPrefixes(prefixes, opts.prefix) {
+		return errUserAbort
+	}
+
 	// Buffers to capture stdout and stderr
 	var stdout, stderr bytes.Buffer
 
-	if len(opts.urls) == 0 {
+	if len(urls) == 0 {
 		return errors.New("no URLs provided")
 	}
 
 	newWindowArg := "--new-window" // Open the first URL in a new window
-	for _, url := range opts.urls {
+	for _, url := range urls {
 		cmd := exec.Command("open", "-na", opts.browserApp.cmdName, "--args", newWindowArg, opts.browserArgs, url)
 		cmd.Stdout = &stdout
 		cmd.Stderr = &stderr
@@ -153,6 +143,32 @@ func openTabs(opts *tabOptions) error {
 	}
 
 	return nil
+}
+
+func readURLs(r io.Reader, cleanF func(string) string) ([]string, prefixSet, error) {
+	urls := []string{}
+	prefixes := newPrefixSet() // Track prefixes to detect potential mismatches
+
+	raw := make([]byte, 1024*1024)
+	_, err := r.Read(raw)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to read URLs from reader: %w", err)
+	}
+	rawURLs := string(raw[:])
+
+	for _, url := range strings.Split(rawURLs, "\n") {
+		if len(url) == 0 {
+			continue
+		}
+
+		prefixes.addFrom(url)
+
+		if u := cleanF(url); u != "" {
+			urls = append(urls, u)
+		}
+	}
+
+	return urls, prefixes, nil
 }
 
 func cleanURL(url string, prefix string) string {
