@@ -64,7 +64,7 @@ Usage of tab:
     	enable verbose output
 ```
 The following environment variables can be used to change default flag values:
-* `TABGRAB_BROWSER`: sets the default for the `browser`
+* `TABGRAB_BROWSER`: sets the default for the `browser` flag
 * `TABGRAB_BROWSER_ARGS`: sets the default for the `browser-args` flag
 * `TABGRAB_PREFIX`: sets the the default for the `prefix` flag
 
