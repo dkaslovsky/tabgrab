@@ -40,7 +40,7 @@ func parseTabFlags(fs *flag.FlagSet, args []string) (*tabOptions, error) {
 		urlList = fs.String(
 			"urls",
 			"",
-			fmt.Sprintf("newline-delimited list of URLs, typically the output from the `%s` command, ignored if -clipboard flag is used", grabCmdName),
+			fmt.Sprintf("newline-delimited list of URLs, typically the output from the %s command, ignored if -clipboard flag is used", grabCmdName),
 		)
 		urlFile = fs.String(
 			"file",

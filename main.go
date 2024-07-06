@@ -64,5 +64,5 @@ func usage() {
 	fmt.Fprintf(os.Stderr, "  %s:\t\t%s\n", grabCmdName, grabCmdDescription)
 	fmt.Fprintf(os.Stderr, "  %s:\t\t%s\n", tabCmdName, tabCmdDescription)
 	fmt.Fprintf(os.Stderr, "  %s:\t%s\n", versionCmdName, versionCmdDescription)
-	fmt.Fprintf(os.Stderr, "\nRun `%s <subcommand> -help` for specific usage and flags", appName)
+	fmt.Fprintf(os.Stderr, "\nRun `%s <subcommand> -help` for subcommand usage and flags", appName)
 }
