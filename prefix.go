@@ -13,7 +13,7 @@ func newPrefixSet(prefixes ...string) prefixSet {
 }
 
 func (p prefixSet) addFrom(s string) {
-	if len(s) == 0 {
+	if len(s) == 0 || s[0] == '\x00' {
 		return
 	}
 	p[s[0]] = struct{}{}
