@@ -1,8 +1,8 @@
 # tabgrab
-A small commandline tool to extract or restore the URL of every open tab in the current browser window on macOS.
+A small command-line tool to extract or restore the URL of every open tab in the current browser window on macOS.
 
 ### Overview and Usage
-`tabgrab` is a macOS-specific commandline tool to:
+`tabgrab` is a macOS-specific command-line tool to:
 * output the URL of all open tabs of the current browser window (`tabgrab grab`)
 * reopen tabs in a new browser window from a list of URLs (`tabgrab tab`)
 
@@ -38,7 +38,7 @@ Usage of grab:
     	enable verbose output
 ```
 
-Restore tabs from a list of URLs:
+Restore tabs from a list of URL with the `tab` command:
 ```
 $ tabgrab tab -h
 `tab` opens the provided URLs as tabs in a new browser window
@@ -63,7 +63,10 @@ Usage of tab:
   -verbose
     	enable verbose output
 ```
-
+The following environment variables can be used to change default flag values:
+* `TABGRAB_BROWSER`: sets the default for the `browser`
+* `TABGRAB_BROWSER_ARGS`: sets the default for the `browser-args` flag
+* `TABGRAB_PREFIX`: sets the the default for the `prefix` flag
 
 ### Examples
 
