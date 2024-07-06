@@ -77,8 +77,11 @@ func parseTabFlags(fs *flag.FlagSet, args []string) (*tabOptions, error) {
 		return nil, err
 	}
 
-	// var urlReader io.Reader
-	// var urlReaderCloser func() error = func() error { return nil }
+	// Override browser-args with env var
+	if browserArgsOverride := os.Getenv("TABGRAB_BROWSER_ARGS"); browserArgsOverride != "" {
+		*browserArgs = browserArgsOverride
+	}
+
 	var urlReader *urlReadCloser
 	switch {
 	case commonOpts.clipboard:
