@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"bytes"
 	"errors"
 	"flag"
@@ -36,6 +35,8 @@ type tabOptions struct {
 }
 
 func parseTabFlags(fs *flag.FlagSet, args []string) (*tabOptions, error) {
+	attachCommonFlags(fs)
+
 	var (
 		urlList = fs.String(
 			"urls",
@@ -49,7 +50,7 @@ func parseTabFlags(fs *flag.FlagSet, args []string) (*tabOptions, error) {
 		)
 		browserArgs = fs.String(
 			"browser-args",
-			"",
+			setStringFlagDefault("", envVarBrowserArgs),
 			"optional space-delimited arguments to be passed to the browser",
 		)
 		disablePrefixWarning = fs.Bool(
@@ -58,8 +59,6 @@ func parseTabFlags(fs *flag.FlagSet, args []string) (*tabOptions, error) {
 			"disables warning for potentially mismatched prefix flag and URL prefixes (default false)",
 		)
 	)
-
-	attachCommonFlags(fs)
 
 	defaultUsage := fs.Usage
 	fs.Usage = func() {
@@ -77,11 +76,6 @@ func parseTabFlags(fs *flag.FlagSet, args []string) (*tabOptions, error) {
 		return nil, err
 	}
 
-	// Override browser-args with env var
-	if browserArgsOverride := os.Getenv("TABGRAB_BROWSER_ARGS"); browserArgsOverride != "" {
-		*browserArgs = browserArgsOverride
-	}
-
 	var urlReader *urlReadCloser
 	switch {
 	case commonOpts.clipboard:
@@ -91,7 +85,7 @@ func parseTabFlags(fs *flag.FlagSet, args []string) (*tabOptions, error) {
 		}
 	case *urlList != "":
 		urlReader = &urlReadCloser{
-			Reader: bufio.NewReader(strings.NewReader(*urlList)),
+			Reader: strings.NewReader(*urlList),
 			Closer: func() error { return nil },
 		}
 	case *urlFile != "":
@@ -100,7 +94,7 @@ func parseTabFlags(fs *flag.FlagSet, args []string) (*tabOptions, error) {
 			return nil, fmt.Errorf("failed to read from file: %w", err)
 		}
 		urlReader = &urlReadCloser{
-			Reader: bufio.NewReader(f),
+			Reader: f,
 			Closer: f.Close,
 		}
 	default:
@@ -152,6 +146,8 @@ func openTabs(opts *tabOptions) error {
 		if err != nil {
 			return err
 		}
+	default:
+		return fmt.Errorf("unrecognized browser: %s", opts.browserApp.name)
 	}
 
 	return nil

@@ -15,6 +15,13 @@ const (
 	defaultPrefix  = ""
 )
 
+// Environment variables
+const (
+	envVarPrefix      = "PREFIX"
+	envVarBrowser     = "BROWSER"
+	envVarBrowserArgs = "BROWSER_ARGS"
+)
+
 type commonFlags struct {
 	browser   string
 	maxTabs   int
@@ -27,9 +34,9 @@ type commonFlags struct {
 var cFlags commonFlags
 
 func attachCommonFlags(fs *flag.FlagSet) {
-	fs.StringVar(&cFlags.browser, "browser", defaultBrowser, "browser name")
+	fs.StringVar(&cFlags.browser, "browser", setStringFlagDefault(defaultBrowser, envVarBrowser), "browser name")
 	fs.IntVar(&cFlags.maxTabs, "max", defaultMaxTabs, "maximum number of tabs")
-	fs.StringVar(&cFlags.prefix, "prefix", defaultPrefix, "optional prefix for each URL")
+	fs.StringVar(&cFlags.prefix, "prefix", setStringFlagDefault(defaultPrefix, envVarPrefix), "optional prefix for each URL")
 	fs.BoolVar(&cFlags.clipboard, "clipboard", false, "use clipboard for input/output")
 	fs.BoolVar(&cFlags.verbose, "verbose", false, "enable verbose output")
 }
@@ -46,11 +53,7 @@ func parseCommonOptions() (*commonOptions, error) {
 	opts := &commonOptions{}
 
 	// Set browser application
-	browser := cFlags.browser
-	if browserOverride := os.Getenv("TABGRAB_BROWSER"); browserOverride != "" {
-		browser = browserOverride
-	}
-	browserApp, validBrowser := browserApplications[strings.ToLower(browser)]
+	browserApp, validBrowser := browserApplications[strings.ToLower(cFlags.browser)]
 	if !validBrowser {
 		names := []string{}
 		for name := range browserApplications {
@@ -67,9 +70,25 @@ func parseCommonOptions() (*commonOptions, error) {
 	}
 	opts.maxTabs = cFlags.maxTabs
 
+	// Fall back on env var for prefix
 	opts.prefix = cFlags.prefix
+	if opts.prefix == "" {
+		opts.prefix = os.Getenv(getEnvVarName(envVarPrefix))
+	}
+
 	opts.clipboard = cFlags.clipboard
 	opts.verbose = cFlags.verbose
 
 	return opts, nil
+}
+
+func setStringFlagDefault(defaultVal string, envVar string) string {
+	if val := os.Getenv(getEnvVarName(envVar)); val != "" {
+		return val
+	}
+	return defaultVal
+}
+
+func getEnvVarName(e string) string {
+	return fmt.Sprintf("%s_%s", strings.ToUpper(appName), e)
 }
