@@ -28,7 +28,7 @@ func runGrabCmd(cmd *flag.FlagSet, args []string) error {
 
 type grabOptions struct {
 	*commonOptions
-	urlWriter *urlWriteCloseRemover
+	urlWriter io.WriteCloser
 }
 
 func parseGrabFlags(fs *flag.FlagSet, args []string) (*grabOptions, error) {
@@ -104,11 +104,13 @@ func (u *urlWriteCloseRemover) Remove() error {
 }
 
 func grabTabs(opts *grabOptions) error {
-	// file cleanup on error
+	// File cleanup on error
 	removeFileOnError := true
 	defer func() {
 		if removeFileOnError {
-			_ = opts.urlWriter.Remove()
+			if remover, ok := opts.urlWriter.(*urlWriteCloseRemover); ok {
+				_ = remover.Remove()
+			}
 		}
 	}()
 
