@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 )
@@ -45,7 +46,11 @@ func parseCommonOptions() (*commonOptions, error) {
 	opts := &commonOptions{}
 
 	// Set browser application
-	browserApp, validBrowser := browserApplications[strings.ToLower(cFlags.browser)]
+	browser := cFlags.browser
+	if browserOverride := os.Getenv("TABGRAB_BROWSER"); browserOverride != "" {
+		browser = browserOverride
+	}
+	browserApp, validBrowser := browserApplications[strings.ToLower(browser)]
 	if !validBrowser {
 		names := []string{}
 		for name := range browserApplications {
