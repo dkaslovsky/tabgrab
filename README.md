@@ -28,6 +28,8 @@ Usage of grab:
     	browser name (default "chrome")
   -clipboard
     	use clipboard for input/output
+  -file string
+    	path for output file containing newline-delimited list of URLs, ignored if -clipboard flag is used
   -max int
     	maximum number of tabs (default 100)
   -prefix string
@@ -51,7 +53,7 @@ Usage of tab:
   -disable-prefix-warning
     	disables warning for potentially mismatched prefix flag and URL prefixes (default false)
   -file string
-    	file containing newline-delimited list of URLs, ignored if -urls or -clipboard flag is used
+    	path to file containing newline-delimited list of URLs, ignored if -urls or -clipboard flag is used
   -max int
     	maximum number of tabs (default 100)
   -prefix string
@@ -65,8 +67,9 @@ Usage of tab:
 
 ### Examples
 
+#### Using stdout
 Extract all open tabs from the browser's current window (defaults)
-```bash
+```
 $ tabgrab grab
 https://github.com/dkaslovsky/tabgrab/tree/main
 https://www.espn.com/
@@ -74,19 +77,29 @@ https://news.ycombinator.com/
 ```
 
 Extract at most 2 open tabs from the current Safari window and output with a specified prefix
-```bash
+```
 $ tabgrab grab -browser safari -max 2 -prefix "- "
 - https://github.com/dkaslovsky/tabgrab/tree/main
 - https://www.espn.com/
 ```
 
-Clipboard workflows are fully supported. For example, to extract all open tabs to the clipboard:
-```bash
+#### Using the clipboard
+To extract all open tabs to the clipboard:
+```
 $ tabgrab grab -clipboard
 ```
 URL tabs can then be restored from the clipboard:
-```bash
+```
 $ tabgrab tab -clipboard
+```
+
+#### Using a file
+```
+$ tabgrab grab -file "my-tabs.txt"
+```
+URL tabs can then be restored from the clipboard:
+```
+$ tabgrab tab -file "my-tabs.txt"
 ```
 
 ### Support status for common browsers
