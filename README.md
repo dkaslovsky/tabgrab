@@ -1,5 +1,5 @@
 # tabgrab
-A small (and likely insecure) tool to extract or restore the URL of every open tab in the current browser window on macOS.
+A small commandline tool to extract or restore the URL of every open tab in the current browser window on macOS.
 
 ### Overview and Usage
 `tabgrab` is a macOS-specific commandline tool to:
@@ -108,6 +108,9 @@ $ tabgrab tab -file "my-tabs.txt"
 * Safari  - supported
 * Firefox - not supported due to compatibility issues with the method used for extracting tab URLs
 
+
+### Security
+`tabgrab` makes no guarantees about security and executes shell commands/Apple Scripts to open browser applications.
 
 ### Installation
 Download the binary for your architecture from the [releases page](https://github.com/dkaslovsky/tabgrab/releases/latest) or clone this repository and build from source.
