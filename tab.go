@@ -30,7 +30,7 @@ func runTabCmd(cmd *flag.FlagSet, args []string) error {
 
 type tabOptions struct {
 	*commonOptions
-	urlReader            io.Reader
+	urlReader            io.ReadCloser
 	browserArgs          string
 	disablePrefixWarning bool
 }
@@ -45,7 +45,7 @@ func parseTabFlags(fs *flag.FlagSet, args []string) (*tabOptions, error) {
 		urlFile = fs.String(
 			"file",
 			"",
-			"file containing newline-delimited list of URLs, ignored if -urls or -clipboard flag is used",
+			"path to file containing newline-delimited list of URLs, ignored if -urls or -clipboard flag is used",
 		)
 		browserArgs = fs.String(
 			"browser-args",
@@ -77,18 +77,29 @@ func parseTabFlags(fs *flag.FlagSet, args []string) (*tabOptions, error) {
 		return nil, err
 	}
 
-	var urlReader io.Reader
+	// var urlReader io.Reader
+	// var urlReaderCloser func() error = func() error { return nil }
+	var urlReader *urlReadCloser
 	switch {
 	case commonOpts.clipboard:
-		urlReader = &clipboard{}
+		urlReader = &urlReadCloser{
+			Reader: &clipboard{},
+			Closer: func() error { return nil },
+		}
 	case *urlList != "":
-		urlReader = bufio.NewReader(strings.NewReader(*urlList))
+		urlReader = &urlReadCloser{
+			Reader: bufio.NewReader(strings.NewReader(*urlList)),
+			Closer: func() error { return nil },
+		}
 	case *urlFile != "":
 		f, err := os.Open(*urlFile)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read from file: %w", err)
 		}
-		urlReader = bufio.NewReader(f)
+		urlReader = &urlReadCloser{
+			Reader: bufio.NewReader(f),
+			Closer: f.Close,
+		}
 	default:
 		return nil, errors.New("newline-delimited list of URLs required as a flag argument, from the clipboard, or from a file")
 	}
@@ -100,6 +111,15 @@ func parseTabFlags(fs *flag.FlagSet, args []string) (*tabOptions, error) {
 		disablePrefixWarning: *disablePrefixWarning,
 	}
 	return opts, nil
+}
+
+type urlReadCloser struct {
+	io.Reader
+	Closer func() error
+}
+
+func (u *urlReadCloser) Close() error {
+	return u.Closer()
 }
 
 func openTabs(opts *tabOptions) error {
@@ -203,7 +223,7 @@ func openTabsSafari(opts *tabOptions, urls []string) error {
 	return nil
 }
 
-func readURLs(r io.Reader, cleanF func(string) string) ([]string, prefixSet, error) {
+func readURLs(r io.ReadCloser, cleanF func(string) string) ([]string, prefixSet, error) {
 	urls := []string{}
 	prefixes := newPrefixSet() // Track prefixes to detect potential mismatches
 
@@ -212,6 +232,7 @@ func readURLs(r io.Reader, cleanF func(string) string) ([]string, prefixSet, err
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to read URLs from reader: %w", err)
 	}
+	defer r.Close()
 	rawURLs := string(raw[:])
 
 	for _, url := range strings.Split(rawURLs, "\n") {

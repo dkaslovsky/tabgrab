@@ -28,10 +28,17 @@ func runGrabCmd(cmd *flag.FlagSet, args []string) error {
 
 type grabOptions struct {
 	*commonOptions
+	urlWriter *urlWriteCloseRemover
 }
 
 func parseGrabFlags(fs *flag.FlagSet, args []string) (*grabOptions, error) {
 	attachCommonFlags(fs)
+
+	urlFile := fs.String(
+		"file",
+		"",
+		"path for output file containing newline-delimited list of URLs, ignored if -clipboard flag is used",
+	)
 
 	defaultUsage := fs.Usage
 	fs.Usage = func() {
@@ -49,13 +56,62 @@ func parseGrabFlags(fs *flag.FlagSet, args []string) (*grabOptions, error) {
 		return nil, err
 	}
 
+	var urlWriter *urlWriteCloseRemover
+	switch {
+	case commonOpts.clipboard:
+		urlWriter = &urlWriteCloseRemover{
+			Writer:  &clipboard{},
+			Closer:  func() error { return nil },
+			Remover: func() error { return nil },
+		}
+	case *urlFile != "":
+		f, err := os.Create(*urlFile)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create file: %w", err)
+		}
+		urlWriter = &urlWriteCloseRemover{
+			Writer:  f,
+			Closer:  f.Close,
+			Remover: func() error { return os.Remove(f.Name()) },
+		}
+	default:
+		urlWriter = &urlWriteCloseRemover{
+			Writer:  os.Stdout,
+			Closer:  func() error { return nil },
+			Remover: func() error { return nil },
+		}
+	}
+
 	opts := &grabOptions{
 		commonOptions: commonOpts,
+		urlWriter:     urlWriter,
 	}
 	return opts, nil
 }
 
+type urlWriteCloseRemover struct {
+	io.Writer
+	Closer  func() error
+	Remover func() error
+}
+
+func (u *urlWriteCloseRemover) Close() error {
+	return u.Closer()
+}
+
+func (u *urlWriteCloseRemover) Remove() error {
+	return u.Remover()
+}
+
 func grabTabs(opts *grabOptions) error {
+	// file cleanup on error
+	removeFileOnError := true
+	defer func() {
+		if removeFileOnError {
+			_ = opts.urlWriter.Remove()
+		}
+	}()
+
 	// Buffers to capture stdout and stderr
 	var stdout, stderr bytes.Buffer
 
@@ -87,12 +143,8 @@ func grabTabs(opts *grabOptions) error {
 		}
 	}
 
-	// Setup output writer
-	var out io.Writer = os.Stdout
-	if opts.clipboard {
-		out = &clipboard{}
-	}
-	writer := bufio.NewWriter(out)
+	writer := bufio.NewWriter(opts.urlWriter)
+	defer opts.urlWriter.Close()
 
 	tabs := strings.Split(stdout.String(), "\n")
 	for _, tab := range tabs {
@@ -108,6 +160,7 @@ func grabTabs(opts *grabOptions) error {
 		return fmt.Errorf("failed to flush buffer: %w", err)
 	}
 
+	removeFileOnError = false
 	return nil
 }
 
