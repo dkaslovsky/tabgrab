@@ -39,6 +39,11 @@ func parseGrabFlags(fs *flag.FlagSet, args []string) (*grabOptions, error) {
 		"",
 		"path for output file containing newline-delimited list of URLs, ignored if -clipboard flag is used",
 	)
+	quiet := fs.Bool(
+		"quiet",
+		false,
+		"disable console output",
+	)
 
 	defaultUsage := fs.Usage
 	fs.Usage = func() {
@@ -56,51 +61,39 @@ func parseGrabFlags(fs *flag.FlagSet, args []string) (*grabOptions, error) {
 		return nil, err
 	}
 
-	var urlWriter *urlWriteCloseRemover
-	switch {
-	case commonOpts.clipboard:
-		urlWriter = &urlWriteCloseRemover{
+	builder := urlWriteCloseRemoverBuilder{}
+	if commonOpts.clipboard {
+		builder.add(&urlWriteCloseRemover{
 			Writer:  &clipboard{},
 			Closer:  func() error { return nil },
 			Remover: func() error { return nil },
-		}
-	case *urlFile != "":
+		})
+	}
+	if *urlFile != "" {
 		f, err := os.Create(*urlFile)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create file: %w", err)
 		}
-		urlWriter = &urlWriteCloseRemover{
+		builder.add(&urlWriteCloseRemover{
 			Writer:  f,
 			Closer:  f.Close,
 			Remover: func() error { return os.Remove(f.Name()) },
-		}
-	default:
-		urlWriter = &urlWriteCloseRemover{
+		})
+	}
+	if !*quiet {
+		builder.add(&urlWriteCloseRemover{
 			Writer:  os.Stdout,
 			Closer:  func() error { return nil },
 			Remover: func() error { return nil },
-		}
+		})
 	}
+	urlWriter := builder.build()
 
 	opts := &grabOptions{
 		commonOptions: commonOpts,
 		urlWriter:     urlWriter,
 	}
 	return opts, nil
-}
-
-type urlWriteCloseRemover struct {
-	io.Writer
-	Closer  func() error
-	Remover func() error
-}
-
-func (u *urlWriteCloseRemover) Close() error {
-	return u.Closer()
-}
-
-func (u *urlWriteCloseRemover) Remove() error {
-	return u.Remover()
 }
 
 func grabTabs(opts *grabOptions) error {
@@ -171,4 +164,59 @@ var errCodeEndOfTabs = []byte("(-1719)\n")
 
 func isErrEndOfTabs(buf *bytes.Buffer) bool {
 	return bytes.HasSuffix(buf.Bytes(), errCodeEndOfTabs)
+}
+
+type urlWriteCloseRemoverBuilder struct {
+	elems []*urlWriteCloseRemover
+}
+
+func (builder *urlWriteCloseRemoverBuilder) add(u *urlWriteCloseRemover) {
+	builder.elems = append(builder.elems, u)
+}
+
+func (builder *urlWriteCloseRemoverBuilder) build() *urlWriteCloseRemover {
+	writers := make([]io.Writer, 0, len(builder.elems))
+	closers := make([]func() error, 0, len(builder.elems))
+	removers := make([]func() error, 0, len(builder.elems))
+
+	for _, elem := range builder.elems {
+		writers = append(writers, elem.Writer)
+		closers = append(closers, elem.Closer)
+		removers = append(removers, elem.Remover)
+	}
+
+	u := urlWriteCloseRemover{}
+	u.Writer = io.MultiWriter(writers...)
+	u.Closer = func() error {
+		for _, closer := range closers {
+			if err := closer(); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+	u.Remover = func() error {
+		for _, remover := range removers {
+			if err := remover(); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
+	return &u
+}
+
+type urlWriteCloseRemover struct {
+	io.Writer
+	Closer  func() error
+	Remover func() error
+}
+
+func (u *urlWriteCloseRemover) Close() error {
+	return u.Closer()
+}
+
+func (u *urlWriteCloseRemover) Remove() error {
+	return u.Remover()
 }
