@@ -34,15 +34,17 @@ type grabOptions struct {
 func parseGrabFlags(fs *flag.FlagSet, args []string) (*grabOptions, error) {
 	attachCommonFlags(fs)
 
-	urlFile := fs.String(
-		"file",
-		"",
-		"path for output file containing newline-delimited list of URLs, ignored if -clipboard flag is used",
-	)
-	quiet := fs.Bool(
-		"quiet",
-		false,
-		"disable console output",
+	var (
+		urlFile = fs.String(
+			"file",
+			"",
+			"path for output file containing newline-delimited list of URLs, ignored if -clipboard flag is used",
+		)
+		quiet = fs.Bool(
+			"quiet",
+			false,
+			"disable console output",
+		)
 	)
 
 	defaultUsage := fs.Usage
@@ -61,9 +63,9 @@ func parseGrabFlags(fs *flag.FlagSet, args []string) (*grabOptions, error) {
 		return nil, err
 	}
 
-	builder := urlWriteCloseRemoverBuilder{}
+	builder := multiWriteCloseRemoverBuilder{}
 	if commonOpts.clipboard {
-		builder.add(&urlWriteCloseRemover{
+		builder.add(&writeCloseRemover{
 			Writer:  &clipboard{},
 			Closer:  func() error { return nil },
 			Remover: func() error { return nil },
@@ -74,14 +76,14 @@ func parseGrabFlags(fs *flag.FlagSet, args []string) (*grabOptions, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to create file: %w", err)
 		}
-		builder.add(&urlWriteCloseRemover{
+		builder.add(&writeCloseRemover{
 			Writer:  f,
 			Closer:  f.Close,
 			Remover: func() error { return os.Remove(f.Name()) },
 		})
 	}
 	if !*quiet {
-		builder.add(&urlWriteCloseRemover{
+		builder.add(&writeCloseRemover{
 			Writer:  os.Stdout,
 			Closer:  func() error { return nil },
 			Remover: func() error { return nil },
@@ -97,11 +99,11 @@ func parseGrabFlags(fs *flag.FlagSet, args []string) (*grabOptions, error) {
 }
 
 func grabTabs(opts *grabOptions) error {
-	// File cleanup on error
-	removeFileOnError := true
+	// Cleanup if exit due to error
+	writeCleanup := true
 	defer func() {
-		if removeFileOnError {
-			if remover, ok := opts.urlWriter.(*urlWriteCloseRemover); ok {
+		if writeCleanup {
+			if remover, ok := opts.urlWriter.(*writeCloseRemover); ok {
 				_ = remover.Remove()
 			}
 		}
@@ -155,26 +157,33 @@ func grabTabs(opts *grabOptions) error {
 		return fmt.Errorf("failed to flush buffer: %w", err)
 	}
 
-	removeFileOnError = false
+	writeCleanup = false
 	return nil
 }
 
-// Error code indicating tab index out of range
-var errCodeEndOfTabs = []byte("(-1719)\n")
-
-func isErrEndOfTabs(buf *bytes.Buffer) bool {
-	return bytes.HasSuffix(buf.Bytes(), errCodeEndOfTabs)
+type writeCloseRemover struct {
+	io.Writer
+	Closer  func() error
+	Remover func() error
 }
 
-type urlWriteCloseRemoverBuilder struct {
-	elems []*urlWriteCloseRemover
+func (w *writeCloseRemover) Close() error {
+	return w.Closer()
 }
 
-func (builder *urlWriteCloseRemoverBuilder) add(u *urlWriteCloseRemover) {
-	builder.elems = append(builder.elems, u)
+func (w *writeCloseRemover) Remove() error {
+	return w.Remover()
 }
 
-func (builder *urlWriteCloseRemoverBuilder) build() *urlWriteCloseRemover {
+type multiWriteCloseRemoverBuilder struct {
+	elems []*writeCloseRemover
+}
+
+func (builder *multiWriteCloseRemoverBuilder) add(w *writeCloseRemover) {
+	builder.elems = append(builder.elems, w)
+}
+
+func (builder *multiWriteCloseRemoverBuilder) build() *writeCloseRemover {
 	writers := make([]io.Writer, 0, len(builder.elems))
 	closers := make([]func() error, 0, len(builder.elems))
 	removers := make([]func() error, 0, len(builder.elems))
@@ -185,9 +194,9 @@ func (builder *urlWriteCloseRemoverBuilder) build() *urlWriteCloseRemover {
 		removers = append(removers, elem.Remover)
 	}
 
-	u := urlWriteCloseRemover{}
-	u.Writer = io.MultiWriter(writers...)
-	u.Closer = func() error {
+	w := writeCloseRemover{}
+	w.Writer = io.MultiWriter(writers...)
+	w.Closer = func() error {
 		for _, closer := range closers {
 			if err := closer(); err != nil {
 				return err
@@ -195,7 +204,7 @@ func (builder *urlWriteCloseRemoverBuilder) build() *urlWriteCloseRemover {
 		}
 		return nil
 	}
-	u.Remover = func() error {
+	w.Remover = func() error {
 		for _, remover := range removers {
 			if err := remover(); err != nil {
 				return err
@@ -203,20 +212,12 @@ func (builder *urlWriteCloseRemoverBuilder) build() *urlWriteCloseRemover {
 		}
 		return nil
 	}
-
-	return &u
+	return &w
 }
 
-type urlWriteCloseRemover struct {
-	io.Writer
-	Closer  func() error
-	Remover func() error
-}
+// Error code indicating tab index out of range
+var errCodeEndOfTabs = []byte("(-1719)\n")
 
-func (u *urlWriteCloseRemover) Close() error {
-	return u.Closer()
-}
-
-func (u *urlWriteCloseRemover) Remove() error {
-	return u.Remover()
+func isErrEndOfTabs(buf *bytes.Buffer) bool {
+	return bytes.HasSuffix(buf.Bytes(), errCodeEndOfTabs)
 }
