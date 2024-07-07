@@ -70,12 +70,7 @@ func parseCommonOptions() (*commonOptions, error) {
 	}
 	opts.maxTabs = cFlags.maxTabs
 
-	// Fall back on env var for prefix
 	opts.prefix = cFlags.prefix
-	if opts.prefix == "" {
-		opts.prefix = os.Getenv(getEnvVarName(envVarPrefix))
-	}
-
 	opts.clipboard = cFlags.clipboard
 	opts.verbose = cFlags.verbose
 

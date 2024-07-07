@@ -39,7 +39,6 @@ func main() {
 
 	case versionCmd.Name():
 		displayVersion()
-		os.Exit(0)
 
 	default:
 		fmt.Printf("Error: unrecognized subcommand %s\n", subCmd)
