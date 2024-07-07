@@ -34,6 +34,8 @@ Usage of grab:
     	maximum number of tabs (default 100)
   -prefix string
     	optional prefix for each URL
+  -quiet
+    	disable console output
   -verbose
     	enable verbose output
 ```
@@ -89,21 +91,24 @@ $ tabgrab grab -browser safari -max 2 -prefix "- "
 #### Using the clipboard
 To extract all open tabs to the clipboard:
 ```
-$ tabgrab grab -clipboard
+$ tabgrab grab -quiet -clipboard
 ```
 URL tabs can then be restored from the clipboard:
 ```
-$ tabgrab tab -clipboard
+$ tabgrab tab -quiet -clipboard
 ```
 
 #### Using a file
 ```
-$ tabgrab grab -file "my-tabs.txt"
+$ tabgrab grab -quiet -file "my-tabs.txt"
 ```
 URL tabs can then be restored from the clipboard:
 ```
-$ tabgrab tab -file "my-tabs.txt"
+$ tabgrab tab -quiet -file "my-tabs.txt"
 ```
+
+#### Multiple outputs
+Output is written to each of stdout, the clipboard, and a specified file by including both the `-file` and `-clipboard` flags and removing the `-quiet` flag.
 
 ### Support status for common browsers
 * Chrome  - supported (default)
