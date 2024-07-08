@@ -37,7 +37,7 @@ func parseGrabFlags(fs *flag.FlagSet, args []string) (*grabOptions, error) {
 		urlFile = fs.String(
 			"file",
 			"",
-			"path for output file containing newline-delimited list of URLs, ignored if -clipboard flag is used",
+			"path for output file containing newline-delimited list of URLs",
 		)
 		quiet = fs.Bool(
 			"quiet",

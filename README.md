@@ -29,7 +29,7 @@ Usage of grab:
   -clipboard
     	use clipboard for input/output
   -file string
-    	path for output file containing newline-delimited list of URLs, ignored if -clipboard flag is used
+    	path for output file containing newline-delimited list of URLs
   -max int
     	maximum number of tabs (default 100)
   -prefix string
