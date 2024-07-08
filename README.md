@@ -36,6 +36,8 @@ Usage of grab:
     	optional prefix for each URL
   -quiet
     	disable console output
+  -template string
+    output format specifying tab URL with {{.URL}} tab name with {{.Name}} (default "{{.URL}}")
   -verbose
     	enable verbose output
 ```
@@ -69,6 +71,7 @@ The following environment variables can be used to change default flag values:
 * `TABGRAB_BROWSER`: sets the default for the `browser` flag
 * `TABGRAB_BROWSER_ARGS`: sets the default for the `browser-args` flag
 * `TABGRAB_PREFIX`: sets the the default for the `prefix` flag
+* `TABGRAB_TEMPLATE`: sets the the default for the `template` flag
 
 ### Examples
 
@@ -86,6 +89,21 @@ Extract at most 2 open tabs from the current Safari window and output with a spe
 $ tabgrab grab -browser safari -max 2 -prefix "- "
 - https://github.com/dkaslovsky/tabgrab/tree/main
 - https://www.espn.com/
+``` 
+
+#### Output template
+Extract the name and URL from all open tabs and output in markdown format
+```
+$ tabgrab grab -template "({{.Name}})[{{.URL}}]"
+(ESPN - Serving Sports Fans. Anytime. Anywhere.)[https://www.espn.com/]
+(Hacker News)[https://news.ycombinator.com/]
+```
+
+Combine the above with a prefix
+```
+$ tabgrab grab -template "({{.Name}})[{{.URL}}]" -prefix "* "
+* (ESPN - Serving Sports Fans. Anytime. Anywhere.)[https://www.espn.com/]
+* (Hacker News)[https://news.ycombinator.com/]
 ```
 
 #### Using the clipboard

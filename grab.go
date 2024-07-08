@@ -28,6 +28,7 @@ func runGrabCmd(cmd *flag.FlagSet, args []string) error {
 type grabOptions struct {
 	*commonOptions
 	urlWriter *writeCloseRemover
+	template  string
 }
 
 func parseGrabFlags(fs *flag.FlagSet, args []string) (*grabOptions, error) {
@@ -43,6 +44,11 @@ func parseGrabFlags(fs *flag.FlagSet, args []string) (*grabOptions, error) {
 			"quiet",
 			false,
 			"disable console output",
+		)
+		template = fs.String(
+			"template",
+			setStringFlagDefault(defaultTemplate, envVarTemplate),
+			"output format specifying tab URL with {{.URL}} tab name with {{.Name}}",
 		)
 	)
 
@@ -93,6 +99,7 @@ func parseGrabFlags(fs *flag.FlagSet, args []string) (*grabOptions, error) {
 	opts := &grabOptions{
 		commonOptions: commonOpts,
 		urlWriter:     urlWriter,
+		template:      *template,
 	}
 	return opts, nil
 }
@@ -110,7 +117,7 @@ func grabTabs(opts *grabOptions) error {
 	var stdout, stderr bytes.Buffer
 
 	// Script to capture URL of tab i
-	tabScript := "tell application \"" + opts.browserApp.cmdName + "\" to get {URL} of tab %d of window 1"
+	tabScript := "tell application \"" + opts.browserApp.cmdName + "\" to get {URL, NAME} of tab %d of window 1"
 
 	for i := 0; i < opts.maxTabs; i++ {
 		iTabScript := fmt.Sprintf(tabScript, i+1)
@@ -137,23 +144,51 @@ func grabTabs(opts *grabOptions) error {
 		}
 	}
 
-	writer := bufio.NewWriter(opts.urlWriter)
+	// Write output
 	defer opts.urlWriter.Close()
-
-	tabs := strings.Split(stdout.String(), "\n")
-	for _, tab := range tabs {
-		if tab != "" {
-			_, err := writer.WriteString(fmt.Sprintf("%s%s\n", opts.prefix, tab))
+	writer := bufio.NewWriter(opts.urlWriter)
+	writeF, err := buildTemplateWriteF(writer, fmt.Sprintf("%s%s", opts.prefix, opts.template))
+	if err != nil {
+		return fmt.Errorf("failed to construct writer template: %w", err)
+	}
+	for _, tab := range parseTabInfo(stdout) {
+		if tab.URL != "" || tab.Name != "" {
+			err := writeF(tab)
 			if err != nil {
 				return fmt.Errorf("failed to write output to buffer: %w", err)
 			}
 		}
 	}
-	err := writer.Flush()
+	err = writer.Flush()
 	if err != nil {
 		return fmt.Errorf("failed to flush buffer: %w", err)
 	}
 
 	writeCleanup = false
 	return nil
+}
+
+type tabInfo struct {
+	URL  string
+	Name string
+}
+
+func parseTabInfo(raw bytes.Buffer) []*tabInfo {
+	tInfo := []*tabInfo{}
+	tabs := strings.Split(raw.String(), "\n")
+	for _, tab := range tabs {
+		if tab == "" {
+			continue
+		}
+		info := strings.SplitN(tab, ",", 2)
+		tabName := ""
+		if len(info) == 2 {
+			tabName = strings.TrimSpace(info[1])
+		}
+		tInfo = append(tInfo, &tabInfo{
+			URL:  info[0],
+			Name: tabName,
+		})
+	}
+	return tInfo
 }

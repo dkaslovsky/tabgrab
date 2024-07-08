@@ -13,6 +13,8 @@ const (
 	defaultBrowser = browserNameChrome
 	defaultMaxTabs = 100
 	defaultPrefix  = ""
+
+	defaultTemplate = templateURL
 )
 
 // Environment variables
@@ -20,6 +22,8 @@ const (
 	envVarPrefix      = "PREFIX"
 	envVarBrowser     = "BROWSER"
 	envVarBrowserArgs = "BROWSER_ARGS"
+
+	envVarTemplate = "TEMPLATE"
 )
 
 type commonFlags struct {
