@@ -94,17 +94,20 @@ $ tabgrab grab -browser safari -max 2 -prefix "- "
 #### Output template
 Extract the name and URL from all open tabs and output in markdown format
 ```
-$ tabgrab grab -template "({{.Name}})[{{.URL}}]"
-(ESPN - Serving Sports Fans. Anytime. Anywhere.)[https://www.espn.com/]
-(Hacker News)[https://news.ycombinator.com/]
+$ tabgrab grab -template "[{{.Name}}]({{.URL}})"
+[ESPN - Serving Sports Fans. Anytime. Anywhere.](https://www.espn.com/)
+[Hacker News](https://news.ycombinator.com/)
 ```
 
 Combine the above with a prefix
 ```
-$ tabgrab grab -template "({{.Name}})[{{.URL}}]" -prefix "* "
-* (ESPN - Serving Sports Fans. Anytime. Anywhere.)[https://www.espn.com/]
-* (Hacker News)[https://news.ycombinator.com/]
+$ tabgrab grab -template "[{{.Name}}]({{.URL}})" -prefix "* "
+* [ESPN - Serving Sports Fans. Anytime. Anywhere.](https://www.espn.com/)
+* [Hacker News](https://news.ycombinator.com/)
 ```
+
+A prefix can instead be included in the template string if so desired, but must be specified using the `-prefix` flag when restoring tabs with the `tab` command.
+
 
 #### Using the clipboard
 To extract all open tabs to the clipboard:
