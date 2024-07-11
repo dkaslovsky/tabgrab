@@ -1,6 +1,8 @@
 # tabgrab
 A small command-line tool to extract or restore the URL of every open tab in the current browser window on macOS.
 
+</br>
+
 ### Overview and Usage
 `tabgrab` is a macOS-specific command-line tool to:
 * output the URL of all open tabs of the current browser window (`tabgrab grab`)
@@ -73,6 +75,8 @@ The following environment variables can be used to change default flag values:
 * `TABGRAB_PREFIX`: sets the the default for the `prefix` flag
 * `TABGRAB_TEMPLATE`: sets the the default for the `template` flag
 
+</br>
+
 ### Examples
 
 #### Using stdout
@@ -108,7 +112,6 @@ $ tabgrab grab -template "[{{.Name}}]({{.URL}})" -prefix "* "
 
 A prefix can instead be included in the template string if so desired, but must be specified using the `-prefix` flag when restoring tabs with the `tab` command.
 
-
 #### Using the clipboard
 To extract all open tabs to the clipboard:
 ```
@@ -131,15 +134,36 @@ $ tabgrab tab -quiet -file "my-tabs.txt"
 #### Multiple outputs
 Output is written to each of stdout, the clipboard, and a specified file by including both the `-file` and `-clipboard` flags and removing the `-quiet` flag.
 
+</br>
+
 ### Support status for common browsers
 * Chrome  - supported (default)
 * Brave   - supported
 * Safari  - supported
 * Firefox - not supported due to compatibility issues with the method used for extracting tab URLs
 
+</br>
+
+### Installation Options
+* Download a pre-built binary (see [releases](https://github.com/dkaslovsky/tabgrab/releases/latest)):
+  
+    ARM:
+    ```
+    $ curl -o tabgrab -L https://github.com/dkaslovsky/tabgrab/releases/latest/download/tabgrab_darwin_arm64
+    ```
+    AMD:
+    ```
+    $ curl -o tabgrab -L https://github.com/dkaslovsky/tabgrab/releases/latest/download/tabgrab_darwin_amd64
+    ```
+
+* Install using Go:
+    ```
+    $ go install github.com/dkaslovsky/tabgrab@latest
+    ```
+
+* Build from source by cloning this repository and running `go build` in the `tabgrab` root directory.
+
+</br>
 
 ### Security
 `tabgrab` makes no guarantees about security and executes shell commands/Apple Scripts to open browser applications.
-
-### Installation
-Download the binary for your architecture from the [releases page](https://github.com/dkaslovsky/tabgrab/releases/latest) or clone this repository and build from source.
