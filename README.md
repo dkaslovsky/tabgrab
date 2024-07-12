@@ -6,7 +6,7 @@ A small command-line tool to extract or restore the URL of every open tab in the
 ### Overview and Usage
 `tabgrab` is a macOS-specific command-line tool to:
 * output the URL of all open tabs of the current browser window (`tabgrab grab`)
-* reopen tabs in a new browser window from a list of URLs (`tabgrab tab`)
+* reopen tabs in a new browser window from a list of URLs (`tabgrab tabs`)
 
 ```
 $ tabgrab -h
@@ -14,7 +14,7 @@ tabgrab: extract and restore URL tabs to and from the active browser window
 
 Usage:
   grab:		extracts the URL from each tab of the active browser window
-  tab:		opens the provided URLs as tabs in a new browser window
+  tabs:		opens the provided URLs as tabs in a new browser window
   version:	displays application version information
 
 Run `tabgrab <subcommand> -help` for subcommand usage and flags
@@ -44,12 +44,12 @@ Usage of grab:
     	enable verbose output
 ```
 
-Restore tabs from a list of URL with the `tab` command:
+Restore tabs from a list of URL with the `tabs` command:
 ```
-$ tabgrab tab -h
-`tab` opens the provided URLs as tabs in a new browser window
+$ tabgrab tabs -h
+`tabs` opens the provided URLs as tabs in a new browser window
 
-Usage of tab:
+Usage of tabs:
   -browser string
     	browser name (default "chrome")
   -browser-args string
@@ -110,7 +110,7 @@ $ tabgrab grab -template "[{{.Name}}]({{.URL}})" -prefix "* "
 * [Hacker News](https://news.ycombinator.com/)
 ```
 
-A prefix can instead be included in the template string if so desired, but must be specified using the `-prefix` flag when restoring tabs with the `tab` command.
+A prefix can instead be included in the template string if so desired, but must be specified using the `-prefix` flag when restoring tabs with the `tabs` command.
 
 #### Using the clipboard
 To extract all open tabs to the clipboard:
@@ -119,7 +119,7 @@ $ tabgrab grab -quiet -clipboard
 ```
 URL tabs can then be restored from the clipboard:
 ```
-$ tabgrab tab -quiet -clipboard
+$ tabgrab tabs -quiet -clipboard
 ```
 
 #### Using a file
@@ -128,7 +128,7 @@ $ tabgrab grab -quiet -file "my-tabs.txt"
 ```
 URL tabs can then be restored from the clipboard:
 ```
-$ tabgrab tab -quiet -file "my-tabs.txt"
+$ tabgrab tabs -quiet -file "my-tabs.txt"
 ```
 
 #### Multiple outputs

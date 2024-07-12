@@ -31,8 +31,8 @@ func main() {
 			os.Exit(1)
 		}
 
-	case tabCmd.Name():
-		if err := runTabCmd(tabCmd, args); err != nil {
+	case tabCmd.Name(), tabCmdNameBackCompat:
+		if err := runTabsCmd(tabCmd, args); err != nil {
 			fmt.Printf("Error: %v\n", err)
 			os.Exit(1)
 		}

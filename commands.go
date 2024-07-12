@@ -4,9 +4,10 @@ import "flag"
 
 // Subcommand names
 const (
-	grabCmdName    = "grab"
-	tabCmdName     = "tab"
-	versionCmdName = "version"
+	grabCmdName          = "grab"
+	tabCmdName           = "tabs"
+	tabCmdNameBackCompat = "tab" // Backwards compatibility with old command name
+	versionCmdName       = "version"
 )
 
 // Subcommands

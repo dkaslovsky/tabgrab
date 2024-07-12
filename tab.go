@@ -13,8 +13,8 @@ import (
 	"time"
 )
 
-func runTabCmd(cmd *flag.FlagSet, args []string) error {
-	opts, err := parseTabFlags(cmd, args)
+func runTabsCmd(cmd *flag.FlagSet, args []string) error {
+	opts, err := parseTabsFlags(cmd, args)
 	if err != nil {
 		return err
 	}
@@ -27,14 +27,14 @@ func runTabCmd(cmd *flag.FlagSet, args []string) error {
 	return nil
 }
 
-type tabOptions struct {
+type tabsOptions struct {
 	*commonOptions
 	urlReader            io.ReadCloser
 	browserArgs          string
 	disablePrefixWarning bool
 }
 
-func parseTabFlags(fs *flag.FlagSet, args []string) (*tabOptions, error) {
+func parseTabsFlags(fs *flag.FlagSet, args []string) (*tabsOptions, error) {
 	attachCommonFlags(fs)
 
 	var (
@@ -101,7 +101,7 @@ func parseTabFlags(fs *flag.FlagSet, args []string) (*tabOptions, error) {
 		return nil, errors.New("newline-delimited list of URLs required as a flag argument, from the clipboard, or from a file")
 	}
 
-	opts := &tabOptions{
+	opts := &tabsOptions{
 		commonOptions:        commonOpts,
 		urlReader:            urlReader,
 		browserArgs:          *browserArgs,
@@ -119,7 +119,7 @@ func (u *urlReadCloser) Close() error {
 	return u.Closer()
 }
 
-func openTabs(opts *tabOptions) error {
+func openTabs(opts *tabsOptions) error {
 	urls, prefixes, err := readURLs(opts.urlReader, func(url string) string {
 		return cleanURL(url, opts.prefix)
 	})
@@ -153,7 +153,7 @@ func openTabs(opts *tabOptions) error {
 	return nil
 }
 
-func openTabsChromium(opts *tabOptions, urls []string) error {
+func openTabsChromium(opts *tabsOptions, urls []string) error {
 	// Buffers to capture stdout and stderr
 	var stdout, stderr bytes.Buffer
 
@@ -174,7 +174,7 @@ func openTabsChromium(opts *tabOptions, urls []string) error {
 	return nil
 }
 
-func openTabsSafari(opts *tabOptions, urls []string) error {
+func openTabsSafari(opts *tabsOptions, urls []string) error {
 	// Buffers to capture stdout and stderr
 	var stdout, stderr bytes.Buffer
 
