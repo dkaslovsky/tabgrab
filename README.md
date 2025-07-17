@@ -15,6 +15,7 @@ tabgrab: extract and restore URL tabs to and from the active browser window
 Usage:
   grab:		extracts the URL from each tab of the active browser window
   tabs:		opens the provided URLs as tabs in a new browser window
+  close:	closes tabs based on URL matching
   version:	displays application version information
 
 Run `tabgrab <subcommand> -help` for subcommand usage and flags
@@ -69,6 +70,28 @@ Usage of tabs:
   -verbose
     	enable verbose output
 ```
+
+Close tabs based on URL matching with the `close` command:
+```
+$ tabgrab close -h
+`close` closes tabs based on URL matching
+
+Usage of close:
+  -browser string
+    	browser name (default "brave")
+  -clipboard
+    	use clipboard for input/output
+  -match string
+    	space delimited list of strings for matching tab URLs to close
+  -max int
+    	maximum number of tabs (default 100)
+  -no-match string
+    	space delimited list of strings for non-matching tab URLs to close
+  -prefix string
+    	optional prefix for each URL
+  -verbose
+```
+
 The following environment variables can be used to change default flag values:
 * `TABGRAB_BROWSER`: sets the default for the `browser` flag
 * `TABGRAB_BROWSER_ARGS`: sets the default for the `browser-args` flag
@@ -133,6 +156,27 @@ $ tabgrab tabs -quiet -file "my-tabs.txt"
 
 #### Multiple outputs
 Output is written to each of stdout, the clipboard, and a specified file by including both the `-file` and `-clipboard` flags and removing the `-quiet` flag.
+
+</br>
+
+#### Close tabs
+Close tabs with URLs containing "foo":
+```
+$ tabgrab close -match "foo"
+```
+Close tabs with URLs containing "foo" and "bar":
+```
+$ tabgrab close -match "foo bar"
+```
+Close tabs with URLs not containing "foo":
+```
+$ tabgrab close -no-match "foo"
+```
+Close tabs with URLs containing "foo" but not containing "bar":
+```
+$ tabgrab close -match "foo" -no-match "bar"
+```
+
 
 </br>
 
