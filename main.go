@@ -37,6 +37,12 @@ func main() {
 			os.Exit(1)
 		}
 
+	case closeCmd.Name():
+		if err := runCloseCmd(closeCmd, args); err != nil {
+			fmt.Printf("Error: %v\n", err)
+			os.Exit(1)
+		}
+
 	case versionCmd.Name():
 		displayVersion()
 
@@ -62,6 +68,7 @@ func usage() {
 	fmt.Fprint(os.Stderr, "Usage:\n")
 	fmt.Fprintf(os.Stderr, "  %s:\t\t%s\n", grabCmdName, grabCmdDescription)
 	fmt.Fprintf(os.Stderr, "  %s:\t\t%s\n", tabCmdName, tabCmdDescription)
+	fmt.Fprintf(os.Stderr, "  %s:\t%s\n", closeCmdName, closeCmdDescription)
 	fmt.Fprintf(os.Stderr, "  %s:\t%s\n", versionCmdName, versionCmdDescription)
 	fmt.Fprintf(os.Stderr, "\nRun `%s <subcommand> -help` for subcommand usage and flags", appName)
 }

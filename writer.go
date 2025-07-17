@@ -62,6 +62,6 @@ func (builder *multiWriteCloseRemoverBuilder) build() *writeCloseRemover {
 // Error code indicating tab index out of range
 var errCodeEndOfTabs = []byte("(-1719)\n")
 
-func isErrEndOfTabs(buf *bytes.Buffer) bool {
+func isEndOfTabsErrCode(buf *bytes.Buffer) bool {
 	return bytes.HasSuffix(buf.Bytes(), errCodeEndOfTabs)
 }

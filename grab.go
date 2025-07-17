@@ -3,11 +3,10 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"flag"
 	"fmt"
-	"log"
 	"os"
-	"os/exec"
 	"strings"
 )
 
@@ -120,27 +119,12 @@ func grabTabs(opts *grabOptions) error {
 	tabScript := "tell application \"" + opts.browserApp.cmdName + "\" to get {URL, NAME} of tab %d of window 1"
 
 	for i := 0; i < opts.maxTabs; i++ {
-		iTabScript := fmt.Sprintf(tabScript, i+1)
-
-		// There is no intention that this implementation be secure so ignore the linter warning
-		cmd := exec.Command("osascript", "-e", iTabScript) // #nosec
-		cmd.Stdout = &stdout
-		cmd.Stderr = &stderr
-
-		if opts.verbose {
-			log.Printf("executing: %s\n", cmd.String())
-		}
-
-		if err := cmd.Run(); err != nil {
-			// Check stderr for clean exit on end-of-tabs error
-			if stderr.Len() == 0 || isErrEndOfTabs(&stderr) {
-				if opts.verbose {
-					log.Printf("tab %d of window 1 not found, end of tabs", i+1)
-				}
+		err := execOsaScript(fmt.Sprintf(tabScript, i+1), &stdout, &stderr, opts.verbose)
+		if err != nil {
+			if errors.Is(err, errEndOfTabs) {
 				break
 			}
-			// Return error if not end-of-tabs
-			return fmt.Errorf("%s\n%v\n", stderr.String(), err)
+			return fmt.Errorf("failed to get tab: %w", err)
 		}
 	}
 
