@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 )
 
 func runCloseCmd(cmd *flag.FlagSet, args []string) error {
@@ -24,16 +25,25 @@ func runCloseCmd(cmd *flag.FlagSet, args []string) error {
 
 type closeOptions struct {
 	*commonOptions
-	matchSubStr string // single exact match string for now
+	matchVals    []string
+	nonMatchVals []string
 }
 
 func parseCloseFlags(fs *flag.FlagSet, args []string) (*closeOptions, error) {
 	attachCommonFlags(fs)
 
-	match := fs.String(
-		"match",
-		"",
-		"(sub)string to match tab URL",
+	var (
+		match = fs.String(
+			"match",
+			"",
+			// "(sub)string to match tab URL",
+			"TODO: fully describe", // TODO: describe
+		)
+		nonMatch = fs.String(
+			"non-match",
+			"",
+			"TODO: fully describe", // TODO: describe
+		)
 	)
 
 	defaultUsage := fs.Usage
@@ -54,18 +64,13 @@ func parseCloseFlags(fs *flag.FlagSet, args []string) (*closeOptions, error) {
 
 	opts := &closeOptions{
 		commonOptions: commonOpts,
-		matchSubStr:   *match,
+		matchVals:     strings.Split(*match, " "),
+		nonMatchVals:  strings.Split(*nonMatch, " "),
 	}
 	return opts, nil
 }
 
 func closeTabs(opts *closeOptions) error {
-	if opts.matchSubStr == "" {
-		return nil
-	}
-
-	closeAllTabs := opts.matchSubStr == "*"
-
 	buf := &bytes.Buffer{}
 	builder := multiWriteCloseRemoverBuilder{}
 	builder.add(&writeCloseRemover{
@@ -90,10 +95,9 @@ func closeTabs(opts *closeOptions) error {
 		panic(err)
 	}
 
-	matchBytes := []byte(opts.matchSubStr)
-	eolBytes := []byte("\n")
-
-	urls := bytes.Split(bytes.TrimSuffix(data, eolBytes), eolBytes)
+	urls := strings.Split(
+		strings.TrimSuffix(string(data), "\n"), "\n",
+	)
 
 	// Buffers to capture stdout and stderr
 	var stdout, stderr bytes.Buffer
@@ -102,7 +106,7 @@ func closeTabs(opts *closeOptions) error {
 	tabScript := "tell application \"" + opts.browserApp.cmdName + "\" to close tab %d of window 1"
 
 	for i, url := range urls {
-		if closeAllTabs || bytes.Contains(url, matchBytes) {
+		if match(url, opts.matchVals, opts.nonMatchVals) {
 			err := execOsaScript(fmt.Sprintf(tabScript, i+1), &stdout, &stderr, opts.verbose)
 			// TODO: better error handling
 			if err == errEndOfTabs {
@@ -115,4 +119,30 @@ func closeTabs(opts *closeOptions) error {
 	}
 
 	return nil
+}
+
+func match(url string, matchVals []string, nonMatchVals []string) bool {
+	numEvals := 0 // Track number of evaluations to avoid returning true on all empty values
+
+	for _, val := range matchVals {
+		if len(val) == 0 {
+			continue
+		}
+		numEvals++
+		if !strings.Contains(url, val) {
+			return false
+		}
+	}
+
+	for _, val := range nonMatchVals {
+		if len(val) == 0 {
+			continue
+		}
+		numEvals++
+		if strings.Contains(url, val) {
+			return false
+		}
+	}
+
+	return numEvals > 0
 }
