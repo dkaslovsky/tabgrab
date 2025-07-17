@@ -5,9 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"log"
 	"os"
-	"os/exec"
 )
 
 func runCloseCmd(cmd *flag.FlagSet, args []string) error {
@@ -105,26 +103,13 @@ func closeTabs(opts *closeOptions) error {
 
 	for i, url := range urls {
 		if closeAllTabs || bytes.Contains(url, matchBytes) {
-
-			iTabScript := fmt.Sprintf(tabScript, i+1)
-			cmd := exec.Command("osascript", "-e", iTabScript) // #nosec
-			cmd.Stdout = &stdout
-			cmd.Stderr = &stderr
-
-			if opts.verbose {
-				log.Printf("executing: %s\n", cmd.String())
+			err := execOsaScript(fmt.Sprintf(tabScript, i+1), &stdout, &stderr, opts.verbose)
+			// TODO: better error handling
+			if err == errEndOfTabs {
+				break
 			}
-
-			if err := cmd.Run(); err != nil {
-				// Check stderr for clean exit on end-of-tabs error
-				if stderr.Len() == 0 || isErrEndOfTabs(&stderr) {
-					if opts.verbose {
-						log.Printf("tab %d of window 1 not found, end of tabs", i+1)
-					}
-					break
-				}
-				// Return error if not end-of-tabs
-				return fmt.Errorf("%s\n%v\n", stderr.String(), err)
+			if err != nil {
+				return err
 			}
 		}
 	}
