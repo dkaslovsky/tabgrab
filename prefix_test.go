@@ -2,7 +2,7 @@ package main
 
 import "testing"
 
-func TestCheckPrefixMismatch(t *testing.T) {
+func TestCheckPrefixMismatch(tt *testing.T) {
 	tests := map[string]struct {
 		prefixes     prefixSet
 		targetPrefix string
@@ -13,7 +13,7 @@ func TestCheckPrefixMismatch(t *testing.T) {
 			targetPrefix: "",
 			expected:     false,
 		},
-		"multiples prefixes in set": {
+		"multiple prefixes in set": {
 			prefixes:     newPrefixSet("-", "*"),
 			targetPrefix: "",
 			expected:     false,
@@ -51,7 +51,7 @@ func TestCheckPrefixMismatch(t *testing.T) {
 	}
 
 	for name, test := range tests {
-		t.Run(name, func(t *testing.T) {
+		tt.Run(name, func(t *testing.T) {
 			if result := checkPrefixMismatch(test.prefixes, test.targetPrefix); result != test.expected {
 				t.Errorf("expected %t, result %t", test.expected, result)
 			}
