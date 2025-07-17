@@ -121,7 +121,6 @@ func grabTabs(opts *grabOptions) error {
 		err := execOsaScript(fmt.Sprintf(tabScript, i+1), &stdout, &stderr, opts.verbose)
 		// TODO: better error handling
 		if err == errEndOfTabs {
-			fmt.Println("breaking")
 			break
 		}
 		if err != nil {
