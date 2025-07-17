@@ -23,6 +23,6 @@ var (
 const (
 	grabCmdDescription    = "extracts the URL from each tab of the active browser window"
 	tabCmdDescription     = "opens the provided URLs as tabs in a new browser window"
-	closeCmdDescription   = "DESCRIPTION GOES HERE" // TODO: fix this
+	closeCmdDescription   = "closes tabs based on URL matching"
 	versionCmdDescription = "displays application version information"
 )

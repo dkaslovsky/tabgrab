@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -36,13 +37,12 @@ func parseCloseFlags(fs *flag.FlagSet, args []string) (*closeOptions, error) {
 		match = fs.String(
 			"match",
 			"",
-			// "(sub)string to match tab URL",
-			"TODO: fully describe", // TODO: describe
+			"space delimited list of strings for matching tab URLs to close",
 		)
 		nonMatch = fs.String(
-			"non-match",
+			"no-match",
 			"",
-			"TODO: fully describe", // TODO: describe
+			"space delimited list of strings for non-matching tab URLs to close",
 		)
 	)
 
@@ -85,18 +85,16 @@ func closeTabs(opts *closeOptions) error {
 		template:      templateURL,
 	})
 	if err != nil {
-		// TODO: better error handling
-		panic(err)
+		return fmt.Errorf("failed to get tabs for matching: %w", err)
 	}
 
-	data, err := io.ReadAll(buf)
+	urlBytes, err := io.ReadAll(buf)
 	if err != nil {
-		// TODO: better error handling
-		panic(err)
+		return fmt.Errorf("failed to read tab URLs from buffer: %w", err)
 	}
 
 	urls := strings.Split(
-		strings.TrimSuffix(string(data), "\n"), "\n",
+		strings.TrimSuffix(string(urlBytes), "\n"), "\n",
 	)
 
 	// Buffers to capture stdout and stderr
@@ -108,12 +106,11 @@ func closeTabs(opts *closeOptions) error {
 	for i, url := range urls {
 		if match(url, opts.matchVals, opts.nonMatchVals) {
 			err := execOsaScript(fmt.Sprintf(tabScript, i+1), &stdout, &stderr, opts.verbose)
-			// TODO: better error handling
-			if err == errEndOfTabs {
-				break
-			}
 			if err != nil {
-				return err
+				if errors.Is(err, errEndOfTabs) {
+					break
+				}
+				return fmt.Errorf("failed to close tab: %w", err)
 			}
 		}
 	}

@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -119,13 +120,11 @@ func grabTabs(opts *grabOptions) error {
 
 	for i := 0; i < opts.maxTabs; i++ {
 		err := execOsaScript(fmt.Sprintf(tabScript, i+1), &stdout, &stderr, opts.verbose)
-		// TODO: better error handling
-		if err == errEndOfTabs {
-			break
-		}
 		if err != nil {
-			fmt.Println("err", err)
-			return err
+			if errors.Is(err, errEndOfTabs) {
+				break
+			}
+			return fmt.Errorf("failed to get tab: %w", err)
 		}
 	}
 
