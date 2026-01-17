@@ -181,8 +181,10 @@ $ tabgrab close -match "foo" -no-match "bar"
 </br>
 
 ### Support status for common browsers
+* ChatGPT Atlas - supported
 * Chrome  - supported (default)
 * Brave   - supported
+* Comet   - supported
 * Safari  - supported
 * Firefox - not supported due to compatibility issues with the method used for extracting tab URLs
 
